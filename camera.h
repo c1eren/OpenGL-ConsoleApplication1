@@ -45,10 +45,10 @@ public:
 
 	glm::vec3 cameraPos;	// Camera world position
 	glm::vec3 cameraFront;	// CameraTarget (what's right in front of us)
-	glm::vec3 cameraRight;	
-	glm::vec3 cameraUp;		
+	glm::vec3 cameraX;	
+	glm::vec3 cameraY;		
 
-	glm::mat4 camView = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp); // lookAt what's in front of us
+	//glm::mat4 camView = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraY); // lookAt what's in front of us
 
 
 	Camera(glm::vec3 camPosition = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f));
@@ -63,7 +63,10 @@ public:
 
 	glm::mat4 getViewMatrix();
 
+	glm::mat4 lookAT();
+
 };
+
 
 
 
