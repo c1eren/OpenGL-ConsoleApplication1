@@ -21,16 +21,7 @@
     <ClCompile Include="src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dumps\dump.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dumps\vertices_dump.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dumps\shader_dump.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VAO.cpp">
@@ -51,10 +42,18 @@
     <ClCompile Include="constants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dumps\attenuation_table.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\shader.vs" />
     <None Include="res\shaders\shader.frag" />
+    <None Include="res\shaders\lightingShaderProto.frag" />
+    <None Include="res\shaders\lightingShader.vs" />
+    <None Include="res\shaders\lightCubeShader.frag" />
+    <None Include="res\shaders\lightCubeShader.vs" />
+    <None Include="res\shaders\lightingShader.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">

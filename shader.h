@@ -21,6 +21,12 @@ public:
 	//set texture int
 	void setInt(const char *f_name, int val);
 
+	//set float
+	void setFloat(const char* f_name, float val);
+
+	//set vec3
+	void setVec3(const char *f_name, glm::vec3 vectors);
+
 	//set matrix
 	void setMat4(const char* f_name, glm::mat4 matrix);
 };
