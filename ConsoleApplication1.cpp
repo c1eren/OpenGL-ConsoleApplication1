@@ -16,6 +16,8 @@
 #include "textureClass.h"
 #include "shapes.h"
 
+//#include <assimp/anim.h> this seems to work so I do believe everything is in order
+
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
