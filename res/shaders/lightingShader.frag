@@ -21,9 +21,9 @@ uniform floorMaterial floorMat;
 // MATERIALS
 
 struct Material {
-	sampler2D diffuse; // Texture becomes our diffuse color
-	sampler2D specular;
-	sampler2D emission;
+	sampler2D texture_diffuse1; // Texture becomes our diffuse color
+	sampler2D texture_specular1;
+	//sampler2D emission;
 	float shininess;
 };
 uniform Material material;

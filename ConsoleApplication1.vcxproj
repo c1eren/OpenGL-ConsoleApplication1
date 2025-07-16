@@ -149,6 +149,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="EBO.cpp" />
+    <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="model.cpp" />
     <ClCompile Include="shader.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -171,6 +173,8 @@
     <None Include="res\shaders\lightingShader.vs" />
     <None Include="res\shaders\lightCubeShader.frag" />
     <None Include="res\shaders\lightCubeShader.vs" />
+    <None Include="res\shaders\modelShader.fs" />
+    <None Include="res\shaders\modelShader.vs" />
     <None Include="res\shaders\shader.frag" />
     <None Include="res\shaders\shader.vs" />
   </ItemGroup>
@@ -184,6 +188,7 @@
     <ClInclude Include="constants.h" />
     <ClInclude Include="EBO.h" />
     <ClInclude Include="mesh.h" />
+    <ClInclude Include="model.h" />
     <ClInclude Include="shader.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>

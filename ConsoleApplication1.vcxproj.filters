@@ -45,6 +45,12 @@
     <ClCompile Include="dumps\attenuation_table.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\shader.vs" />
@@ -54,6 +60,8 @@
     <None Include="res\shaders\lightCubeShader.frag" />
     <None Include="res\shaders\lightCubeShader.vs" />
     <None Include="res\shaders\lightingShader.frag" />
+    <None Include="res\shaders\modelShader.vs" />
+    <None Include="res\shaders\modelShader.fs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
@@ -84,6 +92,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
