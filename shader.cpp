@@ -135,6 +135,18 @@ void Shader::setVec3(const char *f_name, glm::vec3 vectors)
 	glUniform3fv(glGetUniformLocation(this->m_Program, f_name), 1, glm::value_ptr(vectors));
 }
 
+void Shader::setVec4(const char* f_name, glm::vec3 vectors)
+{
+	//Use();
+	glUniform4fv(glGetUniformLocation(this->m_Program, f_name), 1, glm::value_ptr(vectors));
+}
+
+void Shader::setMat3(const char* f_name, glm::mat3 matrix)
+{
+	//Use(); // Don't forget to merge this
+	glUniformMatrix3fv(glGetUniformLocation(this->m_Program, f_name), 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
 void Shader::setMat4(const char *f_name, glm::mat4 matrix)
 {
 	//Use(); // Don't forget to merge this

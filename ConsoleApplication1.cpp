@@ -12,6 +12,9 @@
 #include "constants.h"
 #include "shader.h"
 #include "model.h"
+#include "VAO.h"
+#include "VBO.h"
+#include "shapes.h"
 
 
 #include <glm/glm.hpp>
@@ -83,62 +86,118 @@ int main()
     // Hide and capture cursor when application has focus
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-
-    //Shader modelShader("C:/programming/opengl/proj_1/ConsoleApplication1/res/shaders/modelShader.vs", "C:/programming/opengl/proj_1/ConsoleApplication1/res/shaders/modelShader.fs");
-    Shader modelShader("res/shaders/modelShader.vs", "res/shaders/modelShader.fs");
-    
-    // Load Model
-    Model backpack("models/backpack/backpack.obj");
-
-    //Shader lightingShader("res/shaders/lightingShader.vs", "res/shaders/lightingShader.frag");
-
-
     glEnable(GL_DEPTH_TEST);
     //glEnable(GL_CULL_FACE);
 
-    double currentTime      = glfwGetTime();
-    float currentFrame      = currentTime;     // get current time 
-    const float radius      = 2.0f;
+    // Shader loading
+    Shader modelShader("res/shaders/modelShader.vs", "res/shaders/modelShader.fs");
+    Shader cubeShader("res/shaders/lightCubeShader.vs", "res/shaders/lightCubeShader.frag");
+    //Shader modelShader("C:/programming/opengl/proj_1/ConsoleApplication1/res/shaders/modelShader.vs", "C:/programming/opengl/proj_1/ConsoleApplication1/res/shaders/modelShader.fs");
+
+    // Model loading
+    Model backpack("models/backpack/backpack.obj");
+
+
+    cubeShader.Use();
+
+    // Point light colors
+    glm::vec3 lightColor
+    //(1.0f, 1.0f, 1.0f);
+    (0.70f, 0.67f, 0.53f);
+    //(0.39, 0.58, 0.93);
+    //(0.50, 0.45, 0.25);
+
+    cubeShader.setVec3("lightColor", lightColor);
+    
+    modelShader.Use();
+
+    // Point light properties
+    modelShader.setVec3("plProperties.ambient", glm::vec3(0.05 * lightColor.x, 0.05 * lightColor.y, 0.05 * lightColor.z));
+    modelShader.setVec3("plProperties.diffuse", glm::vec3(lightColor)); // Point light col
+    modelShader.setVec3("plProperties.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+    modelShader.setFloat("plProperties.constant", 1.0f);
+    modelShader.setFloat("plProperties.linear", 0.09f);
+    modelShader.setFloat("plProperties.quadratic", 0.032f);
+
+    // Point light positions
+    std::vector<glm::vec3> pLightPositions = {
+        glm::vec3(0.0f, 0.0f, 2.0f),
+        glm::vec3(1.2f, 1.0f, 0.0f),
+        glm::vec3(-0.3f, -0.5f, -3.0f)
+    };
+
+    for (unsigned int i = 0; i < pLightPositions.size(); i++)
+    {
+        std::string name = "pointLights[" + std::to_string(i) + "].position";
+        modelShader.Use();
+        modelShader.setVec3(name.c_str(), pLightPositions[i]);
+    }
+
+    //modelShader.setVec3("pointLights[0].position", pLightPositions[0]);
+    // Material properties
+    modelShader.setFloat("shininess", 32); // Don't set to 0
+
+    // Point light visual cube
+    VertexArrayObject(VAO);
+    VAO.bind();
+    VertexBufferObject(VBO);
+    VBO.bufferData(cubeStandard);
+    VAO.setAttribPointer({ 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0 });
+    VAO.unbind();
+
+    // FPS and timekeeping
+    double currentTime = glfwGetTime();
+    float currentFrame = currentTime;     // get current time 
+    const float radius = 2.0f;
     const float rotateSpeed = 10.0f;
 
     // Camera style
     camera.camFPS = 0;
     camera.camZoom = 60.0f;
 
-    // Point light colors
-    glm::vec3 lightColor
-    //(0.39, 0.58, 0.93);
-    //(0.50, 0.45, 0.25);
-    (1.0);
-
+    // View, projection, model matrices
     glm::mat4 projection = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 model = glm::mat4(1.0f);
 
-    glm::vec3 lightPos;
-    glm::vec3 lightPosRes[4];
-
-    modelShader.setVec3("plProperties.ambient", glm::vec3())
-
-
     while (!glfwWindowShouldClose(window))
     {
         // Rendering commands here
-        glClearColor(lightColor.x, lightColor.y, lightColor.z, 1.0f);
+        //glClearColor(-lightColor.x, -lightColor.y, -lightColor.z, 1.0f);
+        //glClearColor(0.70f, 0.67f, 0.53f, 1.0f); sage color
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        modelShader.Use();
-
         // View & Projection transformations
-        view       = camera.getViewMatrix();
+        view = camera.getViewMatrix();
         projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
+        
+        for (unsigned int i = 0; i < pLightPositions.size(); i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            cubeShader.Use();
+            model = glm::translate(model, pLightPositions[i]);
+            model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+            cubeShader.setMat4("view", view);
+            cubeShader.setMat4("projection", projection);
+            cubeShader.setMat4("model", model);
+            VAO.bind();
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+        VAO.unbind();
+
+
+        modelShader.Use();
         modelShader.setMat4("view", view);
         modelShader.setMat4("projection", projection); 
 
         // Render loaded model
-        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::mat4(1.0f);
+        model = glm::rotate(model, glm::radians((float)currentTime) * rotateSpeed, glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+        modelShader.setMat3("normalMatrix", normalMatrix);
         modelShader.setMat4("model", model);
 
         backpack.Draw(modelShader);
@@ -147,6 +206,7 @@ int main()
         // Swap the buffers
         glfwSwapBuffers(window);
 
+        
         // Get Framerate
         currentFrame = glfwGetTime();           // get current time 
         deltaTime = currentFrame - lastFrame;   // difference between the time now, and the time it was when we rendered the last frame  
@@ -164,6 +224,7 @@ int main()
             frameCount = 0;
             previousTime = currentTime;
         }
+        
 
         // Check and call events
         glfwPollEvents();  

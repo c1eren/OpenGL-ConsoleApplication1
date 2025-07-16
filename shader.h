@@ -27,7 +27,13 @@ public:
 	//set vec3
 	void setVec3(const char *f_name, glm::vec3 vectors);
 
-	//set matrix
+	//set vec4
+	void setVec4(const char* f_name, glm::vec3 vectors);
+
+	//set matrix3
+	void setMat3(const char* f_name, glm::mat3 matrix);
+
+	//set matrix4
 	void setMat4(const char* f_name, glm::mat4 matrix);
 };
 

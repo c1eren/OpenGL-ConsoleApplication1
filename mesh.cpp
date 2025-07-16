@@ -31,7 +31,7 @@ void Mesh::Draw(Shader& shader)
 			number = std::to_string(specularNr++);
 		}
 		// Concatenate type and number together and set a location value to correspond with active texture unit
-		shader.setFloat((name + number).c_str(), i);//"material." + 
+		shader.setInt((name + number).c_str(), i);//"material." + 
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 
