@@ -96,6 +96,7 @@ int main()
 
     // Model loading
     Model backpack("models/backpack/backpack.obj");
+    //Model tree("models/Tree1/Tree1.obj");
 
 
     cubeShader.Use();
@@ -190,18 +191,27 @@ int main()
         modelShader.Use();
         modelShader.setMat4("view", view);
         modelShader.setMat4("projection", projection); 
+        glm::mat3 normalMatrix = glm::mat3(1.0);
 
-        // Render loaded model
+        // Render loaded models
         model = glm::mat4(1.0f);
         model = glm::rotate(model, glm::radians((float)currentTime) * rotateSpeed, glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+        normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
         modelShader.setMat3("normalMatrix", normalMatrix);
         modelShader.setMat4("model", model);
 
         backpack.Draw(modelShader);
 
+        //model = glm::mat4(1.0f);
+        //model = translate(model, glm::vec3(3.0f, -1.0f, 3.0f));
+        //model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+        //normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+        //modelShader.setMat3("normalMatrix", normalMatrix);
+        //modelShader.setMat4("model", model);
+        //
+        //tree.Draw(modelShader); // Draws with the backpacks textures for some reason lmao
 
         // Swap the buffers
         glfwSwapBuffers(window);

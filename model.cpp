@@ -75,10 +75,13 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 		vertex.Position = vector;
 
 		// Normal vector
-		vector.x = mesh->mNormals[i].x;
-		vector.y = mesh->mNormals[i].y;
-		vector.z = mesh->mNormals[i].z;
-		vertex.Normal = vector;
+		if (mesh->mNormals)
+		{
+			vector.x = mesh->mNormals[i].x;
+			vector.y = mesh->mNormals[i].y;
+			vector.z = mesh->mNormals[i].z;
+			vertex.Normal = vector;
+		}
 
 		// TexCoord vector
 		if (mesh->mTextureCoords[0]) // We only want to use the first texture coordinate in the array (up to 8)
