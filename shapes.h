@@ -11,6 +11,14 @@ std::array<GLfloat, 32> squareVert = {
    -0.5f,  0.5f,  0.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f    // Top Left
 };
 
+std::array<GLfloat, 32> squareNormals = {
+// Position          // Normals           // Texture Coords
+-0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+ 0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+ 0.5f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+-0.5f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f
+};
+
 std::array<GLuint, 6> squareInd = {
         0,  1, 3, //First Triangle
         1, 2, 3  //Second Triangle
@@ -70,7 +78,7 @@ std::array<GLfloat,  120> cubeVert = {
 
 };
 
-std::array<GLuint, 36> cubeInd = {
+std::array<unsigned int, 36> cubeInd = {
     // Back
     0,  1, 3,
     1, 2, 3,
@@ -104,6 +112,22 @@ std::array<GLfloat, 30> floorVert = {
      10.5f,  0.0f, -10.5f,  10.0f,  10.0f,  // Back Right
     -10.5f,  0.0f, -10.5f,  0.0f,   10.0f,  // Back Left
     -10.5f,  0.0f,  10.5f,  0.0f,   0.0f    // Front Left
+};
+
+std::array<GLfloat, 48> floorVertNorm = {
+    // Positions           // Normals            // Tex Coords
+     5.5f, -0.5f,  5.5f,   0.0f, 1.0f, 0.0f,     2.0f, 0.0f,  // Front Right
+     5.5f, -0.5f, -5.5f,   0.0f, 1.0f, 0.0f,     2.0f, 2.0f, // Back Right
+    -5.5f, -0.5f,  5.5f,   0.0f, 1.0f, 0.0f,     0.0f, 0.0f,   // Front Left
+                
+     5.5f, -0.5f, -5.5f,   0.0f, 1.0f, 0.0f,     2.0f, 2.0f, // Back Right
+    -5.5f, -0.5f, -5.5f,   0.0f, 1.0f, 0.0f,     0.0f, 2.0f,  // Back Left
+    -5.5f, -0.5f,  5.5f,   0.0f, 1.0f, 0.0f,     0.0f, 0.0f    // Front Left
+};
+
+std::array<GLuint, 6> floorInd = {
+    0, 1, 2,  // First triangle
+    3, 4, 5   // Second triangle
 };
 
 std::array<GLfloat, 30> flatSquareVert = {
@@ -161,52 +185,52 @@ std::array<GLfloat,  108> cubeStandard = {
         -0.5f,  0.5f, -0.5f,
     };
 
-std::array<GLfloat, 288> cubeNormals {
+std::array<float, 192> cubeNormals {
 // positions         // normals           // texture coords
 -0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+//0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
 -0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
--0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+//-0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
 -0.5f, -0.5f,  0.5f, 0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+//0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
 -0.5f,  0.5f,  0.5f, 0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
--0.5f, -0.5f,  0.5f, 0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+//-0.5f, -0.5f,  0.5f, 0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
 -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
 -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
--0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+//-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
 -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
--0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+//-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+//0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+//0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
 -0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+//0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
 -0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
--0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+//-0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
 -0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+//0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
 -0.5f,  0.5f,  0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
--0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+//-0.5f,  0.5f, -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f
 };
 
-std::array<GLfloat, 48> squareNormals{
+std::array<GLfloat, 48> floorNormals{
     // Position          // Normals           // TexCoords
     -10.5f,  0.0f, -10.5f,  0.0f,  1.0f,  0.0f,  0.0f,  10.0f,
      10.5f,  0.0f, -10.5f,  0.0f,  1.0f,  0.0f,  10.0f,  10.0f,

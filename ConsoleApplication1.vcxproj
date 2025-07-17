@@ -142,6 +142,7 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="ConsoleApplication1.cpp" />
     <ClCompile Include="constants.cpp" />
+    <ClCompile Include="cube.cpp" />
     <ClCompile Include="dumps\attenuation_table.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -174,6 +175,8 @@
     <ClCompile Include="VBO.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\shaders\depthShader.fs" />
+    <None Include="res\shaders\depthShader.vs" />
     <None Include="res\shaders\lightingShader.frag" />
     <None Include="res\shaders\lightingShaderProto.frag" />
     <None Include="res\shaders\lightingShader.vs" />
@@ -183,6 +186,8 @@
     <None Include="res\shaders\modelShader.vs" />
     <None Include="res\shaders\shader.frag" />
     <None Include="res\shaders\shader.vs" />
+    <None Include="res\shaders\shaderSingleColor.fs" />
+    <None Include="res\shaders\shaderSingleColor.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
@@ -192,6 +197,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="constants.h" />
+    <ClInclude Include="cube.h" />
     <ClInclude Include="EBO.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />

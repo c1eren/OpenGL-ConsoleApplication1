@@ -11,10 +11,11 @@
 #include "camera.h"
 #include "constants.h"
 #include "shader.h"
-#include "model.h"
+//#include "model.h"
 #include "VAO.h"
 #include "VBO.h"
 #include "shapes.h"
+#include "cube.h"
 
 
 #include <glm/glm.hpp>
@@ -25,6 +26,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+
+void drawTwoCubes(Shader& shader, Cube& cube);
+void drawTwoCubesAgain(Shader& shader, Cube& cube);
+
 
 bool mouseInWindow = 1;
 
@@ -86,65 +91,55 @@ int main()
     // Hide and capture cursor when application has focus
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
 
     // Shader loading
     Shader modelShader("res/shaders/modelShader.vs", "res/shaders/modelShader.fs");
-    Shader cubeShader("res/shaders/lightCubeShader.vs", "res/shaders/lightCubeShader.frag");
+    Shader depthShader("res/shaders/depthShader.vs", "res/shaders/depthShader.fs");
+    Shader singleColor("res/shaders/shaderSingleColor.vs", "res/shaders/shaderSingleColor.fs");
     //Shader modelShader("C:/programming/opengl/proj_1/ConsoleApplication1/res/shaders/modelShader.vs", "C:/programming/opengl/proj_1/ConsoleApplication1/res/shaders/modelShader.fs");
 
     // Model loading
-    Model backpack("models/backpack/backpack.obj");
+    //Model backpack("models/backpack/backpack.obj");
     //Model tree("models/Tree1/Tree1.obj");
 
-
-    cubeShader.Use();
-
-    // Point light colors
-    glm::vec3 lightColor
-    //(1.0f, 1.0f, 1.0f);
-    (0.70f, 0.67f, 0.53f);
-    //(0.39, 0.58, 0.93);
-    //(0.50, 0.45, 0.25);
-
-    cubeShader.setVec3("lightColor", lightColor);
-    
-    modelShader.Use();
-
-    // Point light properties
-    modelShader.setVec3("plProperties.ambient", glm::vec3(0.05 * lightColor.x, 0.05 * lightColor.y, 0.05 * lightColor.z));
-    modelShader.setVec3("plProperties.diffuse", glm::vec3(lightColor)); // Point light col
-    modelShader.setVec3("plProperties.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-    modelShader.setFloat("plProperties.constant", 1.0f);
-    modelShader.setFloat("plProperties.linear", 0.09f);
-    modelShader.setFloat("plProperties.quadratic", 0.032f);
-
-    // Point light positions
-    std::vector<glm::vec3> pLightPositions = {
-        glm::vec3(0.0f, 0.0f, 2.0f),
-        glm::vec3(1.2f, 1.0f, 0.0f),
-        glm::vec3(-0.3f, -0.5f, -3.0f)
+    // Texture paths
+    std::vector<std::string> cubeTexPaths = {
+        "textures/marble_diffuse.jpg"
     };
 
-    for (unsigned int i = 0; i < pLightPositions.size(); i++)
-    {
-        std::string name = "pointLights[" + std::to_string(i) + "].position";
-        modelShader.Use();
-        modelShader.setVec3(name.c_str(), pLightPositions[i]);
-    }
+    std::vector<std::string> floorTexPaths = {
+        "textures/metal_diffuse.png"
+    };
 
-    //modelShader.setVec3("pointLights[0].position", pLightPositions[0]);
-    // Material properties
-    modelShader.setFloat("shininess", 32); // Don't set to 0
+    Cube cube(cubeNormals, cubeInd, cubeTexPaths);
+    Cube floor(floorVertNorm, floorInd, floorTexPaths);
 
-    // Point light visual cube
-    VertexArrayObject(VAO);
-    VAO.bind();
-    VertexBufferObject(VBO);
-    VBO.bufferData(cubeStandard);
-    VAO.setAttribPointer({ 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0 });
-    VAO.unbind();
+
+    GLuint VAO, VBO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, cubeNormals.size() * sizeof(float), &cubeNormals[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, cubeInd.size() * sizeof(unsigned int), &cubeInd[0], GL_STATIC_DRAW);
+
+    // Vertex positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    // Vertex normals
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    // Vertex texture coords
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+    glBindVertexArray(0);
+    
 
     // FPS and timekeeping
     double currentTime = glfwGetTime();
@@ -157,61 +152,65 @@ int main()
     camera.camZoom = 60.0f;
 
     // View, projection, model matrices
-    glm::mat4 projection = glm::mat4(1.0f);
-    glm::mat4 view = glm::mat4(1.0f);
-    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 projection    = glm::mat4(1.0f);
+    glm::mat4 view          = glm::mat4(1.0f);
+    glm::mat4 model         = glm::mat4(1.0f);
+    glm::mat3 normalMatrix = glm::mat3(1.0);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE); // If depth and stencil tests pass, we replace that fragment with our draw call fragment
+
+
+    //glEnable(GL_CULL_FACE);
 
     while (!glfwWindowShouldClose(window))
     {
         // Rendering commands here
-        //glClearColor(-lightColor.x, -lightColor.y, -lightColor.z, 1.0f);
-        //glClearColor(0.70f, 0.67f, 0.53f, 1.0f); sage color
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // View & Projection transformations
-        view = camera.getViewMatrix();
-        projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
+        view        = camera.getViewMatrix();
+        projection  = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
+
+        singleColor.Use();
+        singleColor.setMat4("view", view);
+        singleColor.setMat4("projection", projection);
+
+        depthShader.Use();
+        depthShader.setMat4("view", view);
+        depthShader.setMat4("projection", projection);
+
+
+        // Don't update stencil buffer while drawing the floor
+        glStencilMask(0x00);
+
+        // Floor
+        depthShader.setMat4("model", glm::mat4(1.0f));
+        floor.Draw(depthShader);
+
+        // Stencil
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);         // For the next draw, for every fragment we draw, mark as one (ref)
+        glStencilMask(0xFF);                       // 0xFF means we can write to the stencil in the draw call
+
+        // Cubes
+        drawTwoCubes(depthShader, cube);    
+
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF); // Basically if what we draw next isn't on top of a box fragment, draw it.
+        glStencilMask(0x00);                 // Don't write to stencil buffer with this draw call 
+        glDisable(GL_DEPTH_TEST);            // Just to stop our outlines getting drawn over by the floor
         
-        for (unsigned int i = 0; i < pLightPositions.size(); i++)
-        {
-            glm::mat4 model = glm::mat4(1.0f);
-            cubeShader.Use();
-            model = glm::translate(model, pLightPositions[i]);
-            model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-            cubeShader.setMat4("view", view);
-            cubeShader.setMat4("projection", projection);
-            cubeShader.setMat4("model", model);
-            VAO.bind();
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-        VAO.unbind();
+        
 
+        drawTwoCubesAgain(singleColor, cube);
 
-        modelShader.Use();
-        modelShader.setMat4("view", view);
-        modelShader.setMat4("projection", projection); 
-        glm::mat3 normalMatrix = glm::mat3(1.0);
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glEnable(GL_DEPTH_TEST);
 
-        // Render loaded models
-        model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians((float)currentTime) * rotateSpeed, glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
-        normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
-        modelShader.setMat3("normalMatrix", normalMatrix);
-        modelShader.setMat4("model", model);
-
-        backpack.Draw(modelShader);
-
-        //model = glm::mat4(1.0f);
-        //model = translate(model, glm::vec3(3.0f, -1.0f, 3.0f));
-        //model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        //normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
-        //modelShader.setMat3("normalMatrix", normalMatrix);
-        //modelShader.setMat4("model", model);
-        //
-        //tree.Draw(modelShader); // Draws with the backpacks textures for some reason lmao
 
         // Swap the buffers
         glfwSwapBuffers(window);
@@ -244,6 +243,34 @@ int main()
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
+
+}
+void drawTwoCubesAgain(Shader &shader, Cube& cube)
+{
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+    model = glm::scale(model, glm::vec3(1.1f));
+    shader.setMat4("model", model);
+    cube.Draw(shader);
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(1.1f));
+    shader.setMat4("model", model);
+    cube.Draw(shader);
+}
+
+void drawTwoCubes(Shader& shader, Cube &cube)
+{
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+    shader.setMat4("model", model);
+    cube.Draw(shader);
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+    shader.setMat4("model", model);
+    cube.Draw(shader);
 
 }
 

@@ -8,18 +8,18 @@ out vec4 FragColor;
 
 uniform vec3 viewPos;
 
-//struct Material{
-//	sampler2D texture_diffuse1;
-//	sampler2D texture_diffuse2;
-//	sampler2D texture_diffuse3;
-//	sampler2D texture_specular1;
-//	sampler2D texture_specular2;
-//	float shininess;
-//};
-//uniform Material material;
+struct Material{
+	sampler2D texture_diffuse1;
+	sampler2D texture_diffuse2;
+	sampler2D texture_diffuse3;
+	sampler2D texture_specular1;
+	sampler2D texture_specular2;
+	float shininess;
+};
+uniform Material material;
 
-uniform sampler2D texture_diffuse1;
-uniform sampler2D texture_specular1;
+//uniform sampler2D texture_diffuse1;
+//uniform sampler2D texture_specular1;
 uniform float shininess;
 
 struct pointLightProperties {
@@ -51,8 +51,8 @@ void main()
 
     vec3 result = vec3(0.0);
 
-    vec3 matDiff = vec3(texture(texture_diffuse1, TexCoords));
-    vec3 matSpec = vec3(texture(texture_specular1, TexCoords));
+    vec3 matDiff = vec3(texture(material.texture_diffuse1, TexCoords));
+    vec3 matSpec = vec3(texture(material.texture_specular1, TexCoords));
 
     // Calculate point lights
 	for (int i = 0; i < NR_POINT_LIGHTS; i++)
