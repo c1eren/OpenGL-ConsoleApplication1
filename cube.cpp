@@ -22,8 +22,20 @@ Cube::Cube(std::span<float> vertices, std::span<unsigned int> indices, std::vect
 	{
 		this->textures.push_back(loadTextures(texturePaths[i]));
 	}
-
+	hasEBO = 1;
 	setUpCube();
+}
+
+Cube::Cube(std::span<float> vertices, std::vector<std::string> texturePaths)
+{
+	this->vertices = vertices;
+
+	for (unsigned int i = 0; i < texturePaths.size(); i++)
+	{
+		this->textures.push_back(loadTextures(texturePaths[i]));
+	}
+	hasEBO = 0;
+	setUpCubeNoEBO();
 }
 
 Texture Cube::loadTextures(std::string texturePath)
@@ -133,6 +145,27 @@ void Cube::setUpCube()
 	glBindVertexArray(0);
 }
 
+void Cube::setUpCubeNoEBO()
+{
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+
+	// Vertex positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	// Vertex texture coords
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	glBindVertexArray(0);
+
+}
+
 void Cube::Draw(Shader &shader)
 {
 	unsigned int diffuseNr = 1;
@@ -157,9 +190,18 @@ void Cube::Draw(Shader &shader)
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 
-	// Draw mesh
-	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	if (!hasEBO)
+	{
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
+	else
+	{
+		// Draw mesh
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	}
+	
 	glBindVertexArray(0);
 
 	// Always good practice to set everything back to defaults once configured.

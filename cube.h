@@ -33,12 +33,14 @@ struct Texture {
 class Cube {
 public:
 	// Mesh data
-	std::span<float>		vertices;
-	std::span<unsigned int>	indices;
+	std::span<float>			vertices;
+	std::span<unsigned int>		indices;
 	std::vector<Texture>		textures;
 	static std::vector<Texture> textures_loaded;
 
 	Cube(std::span<float> vertices, std::span<unsigned int> indices, std::vector<std::string> texturePaths);
+	Cube(std::span<float> vertices, std::vector<std::string> texturePaths);
+
 	void Draw(Shader& shader);
 	void DrawNoTex(Shader& shader);
 
@@ -48,7 +50,12 @@ private:
 	unsigned int VBO;
 	unsigned int EBO;
 
+	// Optional EBO
+	bool hasEBO;
+
 	void setUpCube();
+	void setUpCubeNoEBO();
+
 
 	Texture loadTextures(std::string texturePath);
 };

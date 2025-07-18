@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <array>
+#include <map>
 
 #include "camera.h"
 #include "constants.h"
@@ -27,8 +28,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
+unsigned int load_tex(std::string texturePath);
 void drawTwoCubes(Shader& shader, Cube& cube);
-void drawTwoCubesAgain(Shader& shader, Cube& cube);
+void drawTwoCubesAgain(Shader& shader, unsigned int VAO);
+
 
 
 bool mouseInWindow = 1;
@@ -111,35 +114,36 @@ int main()
         "textures/metal_diffuse.png"
     };
 
-    Cube cube(cubeNormals, cubeInd, cubeTexPaths);
+    std::vector<std::string> grassTexPaths = {
+        "textures/grass_diffuse.png"
+    };
+    
+    std::vector<std::string> windowTexPaths = {
+        "textures/blending_transparent_window_diffuse.png"
+    };
+
+    Cube cube(cubeCounterClockwise, cubeTexPaths); // Fucking hell lmao
     Cube floor(floorVertNorm, floorInd, floorTexPaths);
+    Cube grass(squareNormals, squareInd, grassTexPaths);
+    Cube o_window(squareNormals, squareInd, windowTexPaths);
 
-
-    GLuint VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glBufferData(GL_ARRAY_BUFFER, cubeNormals.size() * sizeof(float), &cubeNormals[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, cubeInd.size() * sizeof(unsigned int), &cubeInd[0], GL_STATIC_DRAW);
-
-    // Vertex positions
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    // Vertex normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    // Vertex texture coords
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    for (unsigned int i = 0; i < grass.textures.size(); i++)
+    {
+        glTextureParameteri(grass.textures[i].id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(grass.textures[i].id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
 
     glBindVertexArray(0);
-    
+
+
+    std::vector<glm::vec3> windowPos = {
+    (glm::vec3(-1.5f, 0.0f, -0.48f)),
+    (glm::vec3(1.5f, 0.0f, 0.51f)),
+    (glm::vec3(0.0f, 0.0f, 0.7f)),
+    (glm::vec3(-0.3f, 0.0f, -2.3f)),
+    (glm::vec3(0.5f, 0.0f, -0.6f))
+    };
+
 
     // FPS and timekeeping
     double currentTime = glfwGetTime();
@@ -152,9 +156,9 @@ int main()
     camera.camZoom = 60.0f;
 
     // View, projection, model matrices
-    glm::mat4 projection    = glm::mat4(1.0f);
-    glm::mat4 view          = glm::mat4(1.0f);
-    glm::mat4 model         = glm::mat4(1.0f);
+    glm::mat4 projection = glm::mat4(1.0f);
+    glm::mat4 view = glm::mat4(1.0f);
+    glm::mat4 model = glm::mat4(1.0f);
     glm::mat3 normalMatrix = glm::mat3(1.0);
 
     glEnable(GL_DEPTH_TEST);
@@ -163,8 +167,16 @@ int main()
     glEnable(GL_STENCIL_TEST);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE); // If depth and stencil tests pass, we replace that fragment with our draw call fragment
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    
+
 
     while (!glfwWindowShouldClose(window))
     {
@@ -173,8 +185,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // View & Projection transformations
-        view        = camera.getViewMatrix();
-        projection  = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
+        view = camera.getViewMatrix();
+        projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
 
         singleColor.Use();
         singleColor.setMat4("view", view);
@@ -184,38 +196,36 @@ int main()
         depthShader.setMat4("view", view);
         depthShader.setMat4("projection", projection);
 
-
-        // Don't update stencil buffer while drawing the floor
-        glStencilMask(0x00);
-
+        glEnable(GL_CULL_FACE);
         // Floor
         depthShader.setMat4("model", glm::mat4(1.0f));
         floor.Draw(depthShader);
 
-        // Stencil
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);         // For the next draw, for every fragment we draw, mark as one (ref)
-        glStencilMask(0xFF);                       // 0xFF means we can write to the stencil in the draw call
-
         // Cubes
-        drawTwoCubes(depthShader, cube);    
+        drawTwoCubes(singleColor, cube);
 
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF); // Basically if what we draw next isn't on top of a box fragment, draw it.
-        glStencilMask(0x00);                 // Don't write to stencil buffer with this draw call 
-        glDisable(GL_DEPTH_TEST);            // Just to stop our outlines getting drawn over by the floor
-        
-        
+        glDisable(GL_CULL_FACE);
+        // Windows
+        std::map<float, glm::vec3> windowPosSorted;
+        for (unsigned int i = 0; i < windowPos.size(); i++)
+        {
+            float distance = glm::length(camera.cameraPos - windowPos[i]);
+            windowPosSorted[distance] = windowPos[i];
+        }
 
-        drawTwoCubesAgain(singleColor, cube);
-
-        glStencilMask(0xFF);
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glEnable(GL_DEPTH_TEST);
+        for (std::map<float, glm::vec3>::reverse_iterator it = windowPosSorted.rbegin(); it != windowPosSorted.rend(); it++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, it->second);
+            depthShader.setMat4("model", model);
+            o_window.Draw(depthShader);
+        }
 
 
         // Swap the buffers
         glfwSwapBuffers(window);
 
-        
+
         // Get Framerate
         currentFrame = glfwGetTime();           // get current time 
         deltaTime = currentFrame - lastFrame;   // difference between the time now, and the time it was when we rendered the last frame  
@@ -233,10 +243,10 @@ int main()
             frameCount = 0;
             previousTime = currentTime;
         }
-        
+
 
         // Check and call events
-        glfwPollEvents();  
+        glfwPollEvents();
 
     }
 
@@ -245,22 +255,24 @@ int main()
     return 0;
 
 }
-void drawTwoCubesAgain(Shader &shader, Cube& cube)
+void drawTwoCubesAgain(Shader& shader, unsigned int VAO)
 {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
     model = glm::scale(model, glm::vec3(1.1f));
     shader.setMat4("model", model);
-    cube.Draw(shader);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(1.1f));
     shader.setMat4("model", model);
-    cube.Draw(shader);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
-void drawTwoCubes(Shader& shader, Cube &cube)
+void drawTwoCubes(Shader& shader, Cube& cube)
 {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
@@ -279,9 +291,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     // When a user presses the escape key, we set the WindowShouldClose property to true, // closing the application
 
     // Utility
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) 
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
- 
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
@@ -364,6 +376,53 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     camera.processMouseScroll((float)yoffset);
 }
 
+unsigned int load_tex(std::string texturePath)
+{
+    unsigned int textureId;
+    // Generate texture handle
+    glGenTextures(1, &textureId);
+
+    // Load texture using stbi
+    const char* path = texturePath.c_str(); // Can look at stbi_load() just taking a std::string
+    //load texture with stb_i
+    int width;
+    int height;
+    int nrChannels;
+    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+
+    if (data)
+    {
+        GLenum format;
+        if (nrChannels == 1)
+            format = GL_RED;
+        else if (nrChannels == 2)
+            format = GL_RG;
+        else if (nrChannels == 3)
+            format = GL_RGB;
+        else
+            format = GL_RGBA; // Look here if things start breaking
+
+        // Generate texture 
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // Free image load data
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Failed to load texture at: " << "\"" << path << "\"" << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureId;
+}
 
 
 
