@@ -11,13 +11,13 @@ std::array<std::string, 4> texTypes{
 	"emission"
 };
 
-std::vector<Texture> Cube::textures_loaded; // Available to all Cube instances
+std::vector<CubeTex> Cube::textures_loaded; // Available to all Cube instances
 
 Cube::Cube(std::span<float> vertices, std::span<unsigned int> indices, std::vector<std::string> texturePaths)
 {
 	this->vertices = vertices;
 	this->indices = indices;
-	
+
 	for (unsigned int i = 0; i < texturePaths.size(); i++)
 	{
 		this->textures.push_back(loadTextures(texturePaths[i]));
@@ -49,10 +49,10 @@ Cube::Cube(std::span<float> vertices)
 }
 
 
-Texture Cube::loadTextures(std::string texturePath)
+CubeTex Cube::loadTextures(std::string texturePath)
 {
 
-	Texture texture;
+	CubeTex texture;
 
 	// Check if texture is already loaded
 	bool skip = 0;
@@ -134,15 +134,15 @@ void Cube::setUpCube()
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
-	
+
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	
+
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
-	
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-	
+
 	// Vertex positions
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -152,7 +152,7 @@ void Cube::setUpCube()
 	// Vertex texture coords
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	
+
 	glBindVertexArray(0);
 }
 
@@ -197,7 +197,7 @@ void Cube::setUpCubeScreen()
 	glBindVertexArray(0);
 }
 
-void Cube::Draw(Shader &shader)
+void Cube::Draw(Shader& shader)
 {
 	if (hasTex)
 	{
@@ -235,14 +235,14 @@ void Cube::Draw(Shader &shader)
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 	}
-	
+
 	glBindVertexArray(0);
 
 	// Always good practice to set everything back to defaults once configured.
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void Cube::DrawNoTex(Shader &shader)
+void Cube::DrawNoTex(Shader& shader)
 {
 	// Draw mesh
 	glBindVertexArray(VAO);
