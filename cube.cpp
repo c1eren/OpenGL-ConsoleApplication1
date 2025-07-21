@@ -23,6 +23,7 @@ Cube::Cube(std::span<float> vertices, std::span<unsigned int> indices, std::vect
 		this->textures.push_back(loadTextures(texturePaths[i]));
 	}
 	hasEBO = 1;
+	hasTex = 1;
 	setUpCube();
 }
 
@@ -35,8 +36,18 @@ Cube::Cube(std::span<float> vertices, std::vector<std::string> texturePaths)
 		this->textures.push_back(loadTextures(texturePaths[i]));
 	}
 	hasEBO = 0;
+	hasTex = 1;
 	setUpCubeNoEBO();
 }
+
+Cube::Cube(std::span<float> vertices)
+{
+	this->vertices = vertices;
+	hasEBO = 0;
+	hasTex = 0;
+	setUpCubeScreen();
+}
+
 
 Texture Cube::loadTextures(std::string texturePath)
 {
@@ -166,28 +177,51 @@ void Cube::setUpCubeNoEBO()
 
 }
 
+void Cube::setUpCubeScreen()
+{
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+
+	// Vertex positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	// Vertex texture coords
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	glBindVertexArray(0);
+}
+
 void Cube::Draw(Shader &shader)
 {
-	unsigned int diffuseNr = 1;
-	unsigned int specularNr = 1;
-	for (unsigned int i = 0; i < textures.size(); i++)
+	if (hasTex)
 	{
-		glActiveTexture(GL_TEXTURE0 + i);
+		unsigned int diffuseNr = 1;
+		unsigned int specularNr = 1;
+		for (unsigned int i = 0; i < textures.size(); i++)
+		{
+			glActiveTexture(GL_TEXTURE0 + i);
 
-		std::string number;
-		std::string name = textures[i].type;
-		if (name == "texture_diffuse")
-		{
-			number = std::to_string(diffuseNr++);
+			std::string number;
+			std::string name = textures[i].type;
+			if (name == "texture_diffuse")
+			{
+				number = std::to_string(diffuseNr++);
+			}
+			else if (name == "texture_specular")
+			{
+				number = std::to_string(specularNr++);
+			}
+			// Concatenate type and number together and set a location value to correspond with active texture unit
+			shader.setInt(("material." + name + number).c_str(), i);
+			//std::cout << "(material. + name + number).c_str(): " << ("material." + name + number).c_str() << std::endl;
+			glBindTexture(GL_TEXTURE_2D, textures[i].id);
 		}
-		else if (name == "texture_specular")
-		{
-			number = std::to_string(specularNr++);
-		}
-		// Concatenate type and number together and set a location value to correspond with active texture unit
-		shader.setInt(("material." + name + number).c_str(), i); 
-		//std::cout << "(material. + name + number).c_str(): " << ("material." + name + number).c_str() << std::endl;
-		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 
 	if (!hasEBO)

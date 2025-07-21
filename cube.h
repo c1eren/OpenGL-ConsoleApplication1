@@ -40,6 +40,8 @@ public:
 
 	Cube(std::span<float> vertices, std::span<unsigned int> indices, std::vector<std::string> texturePaths);
 	Cube(std::span<float> vertices, std::vector<std::string> texturePaths);
+	Cube(std::span<float> vertices);
+
 
 	void Draw(Shader& shader);
 	void DrawNoTex(Shader& shader);
@@ -50,11 +52,14 @@ private:
 	unsigned int VBO;
 	unsigned int EBO;
 
-	// Optional EBO
+	// Optional EBO, Tex
 	bool hasEBO;
+	bool hasTex;
 
 	void setUpCube();
 	void setUpCubeNoEBO();
+	void setUpCubeScreen();
+
 
 
 	Texture loadTextures(std::string texturePath);

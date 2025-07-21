@@ -389,3 +389,13 @@ std::array<GLfloat, 24> squareBlade = {
      0.00f,  0.1f,  0.0f,  0.0f,  0.0f,  1.0f,   // Top right
     -0.00f,  0.1f,  0.0f,  0.0f,  0.0f,  1.0f    // Top left
 };
+
+float quadVertices[] = {
+    // positions // texCoords
+    -1.0f,  1.0f,  0.0f,  1.0f,
+    -1.0f, -1.0f,  0.0f,  0.0f,
+     1.0f, -1.0f,  1.0f,  0.0f,
+    -1.0f,  1.0f,  0.0f,  1.0f,
+     1.0f, -1.0f,  1.0f,  0.0f,
+     1.0f,  1.0f,  1.0f,  1.0f
+};

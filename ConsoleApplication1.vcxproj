@@ -190,6 +190,8 @@
     <None Include="res\shaders\lightCubeShader.vs" />
     <None Include="res\shaders\modelShader.fs" />
     <None Include="res\shaders\modelShader.vs" />
+    <None Include="res\shaders\screenShader.fs" />
+    <None Include="res\shaders\screenShader.vs" />
     <None Include="res\shaders\shader.frag" />
     <None Include="res\shaders\shader.vs" />
     <None Include="res\shaders\shaderSingleColor.fs" />

@@ -96,9 +96,9 @@ int main()
 
 
     // Shader loading
-    Shader modelShader("res/shaders/modelShader.vs", "res/shaders/modelShader.fs");
     Shader depthShader("res/shaders/depthShader.vs", "res/shaders/depthShader.fs");
     Shader singleColor("res/shaders/shaderSingleColor.vs", "res/shaders/shaderSingleColor.fs");
+    Shader screenShader("res/shaders/screenShader.vs", "res/shaders/screenShader.fs");
     //Shader modelShader("C:/programming/opengl/proj_1/ConsoleApplication1/res/shaders/modelShader.vs", "C:/programming/opengl/proj_1/ConsoleApplication1/res/shaders/modelShader.fs");
 
     // Model loading
@@ -107,7 +107,8 @@ int main()
 
     // Texture paths
     std::vector<std::string> cubeTexPaths = {
-        "textures/marble_diffuse.jpg"
+        //"textures/marble_diffuse.jpg",
+        "textures/container_diffuse.jpg"
     };
 
     std::vector<std::string> floorTexPaths = {
@@ -124,14 +125,32 @@ int main()
 
     Cube cube(cubeCounterClockwise, cubeTexPaths); // Fucking hell lmao
     Cube floor(floorVertNorm, floorInd, floorTexPaths);
-    Cube grass(squareNormals, squareInd, grassTexPaths);
-    Cube o_window(squareNormals, squareInd, windowTexPaths);
+    Cube wall(quadVertices);
+    //Cube grass(squareNormals, squareInd, grassTexPaths);
+    //Cube o_window(squareNormals, squareInd, windowTexPaths);
+    
 
-    for (unsigned int i = 0; i < grass.textures.size(); i++)
-    {
-        glTextureParameteri(grass.textures[i].id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(grass.textures[i].id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    }
+    //for (unsigned int i = 0; i < grass.textures.size(); i++)
+    //{
+    //    glTextureParameteri(grass.textures[i].id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    //    glTextureParameteri(grass.textures[i].id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    //}
+
+    GLuint VAO, VBO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), &quadVertices[0], GL_STATIC_DRAW);
+
+    // Vertex positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    // Vertex normals
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
     glBindVertexArray(0);
 
@@ -173,18 +192,60 @@ int main()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    
+
+
+    // Framebuffers
+    unsigned int fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    // Generate texture for framebuffer object
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewport_width, viewport_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Attach it to currently bound framebuffer object
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+    // Renderbuffer 
+    unsigned int rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    // Use renderbuffer for depth and stencil testing
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, viewport_width, viewport_height);
+    // Once enough memory is allocated we can unbind renderbuffer object
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    // Attach the renderbuffer object to the depth and stencil attachment of the framebuffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    //screenShader.setVec2("texelSize", glm::vec2(1 / viewport_width, 1 / viewport_height));
 
 
     while (!glfwWindowShouldClose(window))
     {
+        // FIRST PASS
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         // Rendering commands here
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        // DRAW SCENE
 
         // View & Projection transformations
+        camera.cameraFront = camera.cameraFront * glm::vec3(-1.0f);
         view = camera.getViewMatrix();
         projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
 
@@ -196,6 +257,7 @@ int main()
         depthShader.setMat4("view", view);
         depthShader.setMat4("projection", projection);
 
+
         glEnable(GL_CULL_FACE);
         // Floor
         depthShader.setMat4("model", glm::mat4(1.0f));
@@ -204,28 +266,54 @@ int main()
         // Cubes
         drawTwoCubes(singleColor, cube);
 
+        // SECOND PASS
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); // Back to default
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        // View & Projection transformations
+        camera.cameraFront = camera.cameraFront * glm::vec3(-1.0f);
+        view = camera.getViewMatrix();
+        projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
+
+        singleColor.Use();
+        singleColor.setMat4("view", view);
+        singleColor.setMat4("projection", projection);
+
+        depthShader.Use();
+        depthShader.setMat4("view", view);
+        depthShader.setMat4("projection", projection);
+
+        screenShader.Use();
+        screenShader.setMat4("view", view);
+        //screenShader.setMat4("projection", projection);
+
+        // Floor
+        depthShader.setMat4("model", glm::mat4(1.0f));
+        floor.Draw(depthShader);
+
+        // Cubes
+        drawTwoCubes(singleColor, cube);
+
         glDisable(GL_CULL_FACE);
-        // Windows
-        std::map<float, glm::vec3> windowPosSorted;
-        for (unsigned int i = 0; i < windowPos.size(); i++)
-        {
-            float distance = glm::length(camera.cameraPos - windowPos[i]);
-            windowPosSorted[distance] = windowPos[i];
-        }
 
-        for (std::map<float, glm::vec3>::reverse_iterator it = windowPosSorted.rbegin(); it != windowPosSorted.rend(); it++)
-        {
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, it->second);
-            depthShader.setMat4("model", model);
-            o_window.Draw(depthShader);
-        }
-
+        // Screen
+        screenShader.Use();
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.8f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.3f, 0.1f, 1.0f));
+        screenShader.setMat4("model", model);
+        glBindVertexArray(VAO);
+        glDisable(GL_DEPTH_TEST); // Make sure screen quad renders in front of everything else
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+              
 
         // Swap the buffers
         glfwSwapBuffers(window);
 
-
+        //------------------------------------------------------------------------------------------------------------------------------//
+        
         // Get Framerate
         currentFrame = glfwGetTime();           // get current time 
         deltaTime = currentFrame - lastFrame;   // difference between the time now, and the time it was when we rendered the last frame  
@@ -285,6 +373,7 @@ void drawTwoCubes(Shader& shader, Cube& cube)
     cube.Draw(shader);
 
 }
+
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {

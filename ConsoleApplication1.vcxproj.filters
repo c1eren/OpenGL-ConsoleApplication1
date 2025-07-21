@@ -75,6 +75,8 @@
     <None Include="res\shaders\depthShader.fs" />
     <None Include="res\shaders\shaderSingleColor.fs" />
     <None Include="res\shaders\shaderSingleColor.vs" />
+    <None Include="res\shaders\screenShader.vs" />
+    <None Include="res\shaders\screenShader.fs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">

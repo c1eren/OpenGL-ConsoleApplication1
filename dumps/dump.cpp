@@ -682,3 +682,22 @@ glEnableVertexAttribArray(1);
 glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 
 glBindVertexArray(0);
+
+
+
+glDisable(GL_CULL_FACE);
+// Windows
+std::map<float, glm::vec3> windowPosSorted;
+for (unsigned int i = 0; i < windowPos.size(); i++)
+{
+    float distance = glm::length(camera.cameraPos - windowPos[i]);
+    windowPosSorted[distance] = windowPos[i];
+}
+
+for (std::map<float, glm::vec3>::reverse_iterator it = windowPosSorted.rbegin(); it != windowPosSorted.rend(); it++)
+{
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, it->second);
+    depthShader.setMat4("model", model);
+    o_window.Draw(depthShader);
+}

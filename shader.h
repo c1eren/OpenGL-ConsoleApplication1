@@ -24,11 +24,14 @@ public:
 	//set float
 	void setFloat(const char* f_name, float val);
 
+	//set vec2
+	void setVec2(const char* f_name, glm::vec2 vectors);
+
 	//set vec3
 	void setVec3(const char *f_name, glm::vec3 vectors);
 
 	//set vec4
-	void setVec4(const char* f_name, glm::vec3 vectors);
+	void setVec4(const char* f_name, glm::vec4 vectors);
 
 	//set matrix3
 	void setMat3(const char* f_name, glm::mat3 matrix);
