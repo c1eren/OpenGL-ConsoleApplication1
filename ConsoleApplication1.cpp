@@ -89,7 +89,7 @@ int main()
 
 
     // Shader loading
-    Shader singleColor("res/shaders/shaderSingleColor.vs", "res/shaders/shaderSingleColor.fs");
+    Shader cubeMapShader("res/shaders/cubeMap.vs", "res/shaders/cubeMap.fs");
 
     // Model loading
     //Model backpack("models/backpack/backpack.obj");
@@ -154,10 +154,10 @@ int main()
         view = camera.getViewMatrix();
         projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
         
-        singleColor.setMat4("view", view);
-        singleColor.setMat4("projection", projection);
-        singleColor.setMat4("model", model);
-        cube.Draw(singleColor);     // Shader set to just output vec4(TexCoords, 0.5, 1.0)
+        cubeMapShader.setMat4("view", view);
+        cubeMapShader.setMat4("projection", projection);
+        cubeMapShader.setMat4("model", model);
+        cube.Draw(cubeMapShader);     // Shader set to just output vec4(TexCoords, 0.5, 1.0)
 
 
         // Swap the buffers

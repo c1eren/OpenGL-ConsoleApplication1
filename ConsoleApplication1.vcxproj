@@ -181,6 +181,8 @@
     <ClCompile Include="VBO.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\shaders\cubeMap.fs" />
+    <None Include="res\shaders\cubeMap.vs" />
     <None Include="res\shaders\depthShader.fs" />
     <None Include="res\shaders\depthShader.vs" />
     <None Include="res\shaders\lightingShader.frag" />
