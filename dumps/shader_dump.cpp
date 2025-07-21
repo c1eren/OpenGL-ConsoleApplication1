@@ -15,3 +15,10 @@ void main() {
 
 //gl_Position = vec4(aPos.x * offset, aPos.y + offset, aPos.z, 1.0);
 //ourColor = aColor;
+
+vec4 texColor = texture(texture1, TexCoords);
+if (texColor.a < 0.2)
+{
+    discard;
+}
+FragColor = texColor;

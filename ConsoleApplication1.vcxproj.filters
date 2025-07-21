@@ -21,16 +21,7 @@
     <ClCompile Include="src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dumps\dump.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dumps\vertices_dump.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dumps\shader_dump.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VAO.cpp">
@@ -51,10 +42,41 @@
     <ClCompile Include="constants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dumps\attenuation_table.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dumps\treeDump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cube.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dumps\vertices_fix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\shader.vs" />
     <None Include="res\shaders\shader.frag" />
+    <None Include="res\shaders\lightingShaderProto.frag" />
+    <None Include="res\shaders\lightingShader.vs" />
+    <None Include="res\shaders\lightCubeShader.frag" />
+    <None Include="res\shaders\lightCubeShader.vs" />
+    <None Include="res\shaders\lightingShader.frag" />
+    <None Include="res\shaders\modelShader.vs" />
+    <None Include="res\shaders\modelShader.fs" />
+    <None Include="res\shaders\depthShader.vs" />
+    <None Include="res\shaders\depthShader.fs" />
+    <None Include="res\shaders\shaderSingleColor.fs" />
+    <None Include="res\shaders\shaderSingleColor.vs" />
+    <None Include="res\shaders\screenShader.vs" />
+    <None Include="res\shaders\screenShader.fs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
@@ -82,6 +104,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="shapes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cube.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

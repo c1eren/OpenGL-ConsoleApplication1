@@ -46,7 +46,11 @@ public:
 	glm::vec3 cameraPos;	// Camera world position
 	glm::vec3 cameraFront;	// CameraTarget (what's right in front of us)
 	glm::vec3 cameraX;	
-	glm::vec3 cameraY;		
+	glm::vec3 cameraY;
+
+	bool hasMoved = 1;
+	bool flashLightOn = 0;
+
 
 	//glm::mat4 camView = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraY); // lookAt what's in front of us
 

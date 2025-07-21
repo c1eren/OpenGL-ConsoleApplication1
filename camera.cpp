@@ -14,6 +14,7 @@ Camera::Camera(glm::vec3 camPosition, glm::vec3 camFront)
 
 void Camera::processKeyPress(Direction dir)
 {
+    hasMoved = 1;
     float velocity = camSpeed * deltaTime;
 
     if (dir == Direction::FORWARD)
@@ -78,6 +79,7 @@ void Camera::processMouseScroll(float yoffset)
 
 void Camera::updateEulerValues(float xoffset, float yoffset)
 {
+    hasMoved = 1;
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 

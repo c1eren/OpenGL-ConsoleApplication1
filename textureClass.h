@@ -3,15 +3,15 @@
 
 #include <glad/glad.h>
 
+struct texData {
+    const char* texPath;
+    GLint internalFormat;
+    GLenum dimension;
+    GLenum format;
+};
 
 class Texture {
 public:
-    struct texData{
-        const char* texPath;
-        GLint internalFormat;
-        GLenum dimension;
-        GLenum format;
-    };
 
     unsigned int texId;
     static GLuint nextAvailableUnit; // shared across all instances
