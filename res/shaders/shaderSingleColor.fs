@@ -16,5 +16,6 @@ void main()
 {    
 	vec4 texCol = texture(material.texture_diffuse1, TexCoords); 
 	//FragColor = vec4(0.04, 0.28, 0.26, 1.0);
-	FragColor = texCol;
+	//FragColor = texCol;
+	FragColor = vec4(TexCoords, 0.5, 1.0);
 }

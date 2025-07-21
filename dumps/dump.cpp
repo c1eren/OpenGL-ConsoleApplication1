@@ -701,3 +701,53 @@ for (std::map<float, glm::vec3>::reverse_iterator it = windowPosSorted.rbegin();
     depthShader.setMat4("model", model);
     o_window.Draw(depthShader);
 }
+
+glEnable(GL_DEPTH_TEST);
+glDepthFunc(GL_LESS);
+
+glEnable(GL_STENCIL_TEST);
+glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE); // If depth and stencil tests pass, we replace that fragment with our draw call fragment
+
+glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+glEnable(GL_CULL_FACE);
+glCullFace(GL_BACK);
+
+//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+
+
+ // Framebuffers
+unsigned int fbo;
+glGenFramebuffers(1, &fbo);
+glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+// Generate texture for framebuffer object
+unsigned int texture;
+glGenTextures(1, &texture);
+glBindTexture(GL_TEXTURE_2D, texture);
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewport_width, viewport_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+glBindTexture(GL_TEXTURE_2D, 0);
+
+// Attach it to currently bound framebuffer object
+glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+// Renderbuffer 
+unsigned int rbo;
+glGenRenderbuffers(1, &rbo);
+glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+// Use renderbuffer for depth and stencil testing
+glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, viewport_width, viewport_height);
+// Once enough memory is allocated we can unbind renderbuffer object
+glBindRenderbuffer(GL_RENDERBUFFER, 0);
+// Attach the renderbuffer object to the depth and stencil attachment of the framebuffer
+glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+{
+    std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+}
+glBindFramebuffer(GL_FRAMEBUFFER, 0);

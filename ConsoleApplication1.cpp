@@ -13,11 +13,11 @@
 #include "constants.h"
 #include "shader.h"
 //#include "model.h"
+#include "cube.h"
 #include "VAO.h"
 #include "VBO.h"
 #include "shapes.h"
-#include "cube.h"
-
+#include "helper_functions.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -28,12 +28,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-unsigned int load_tex(std::string texturePath);
-void drawTwoCubes(Shader& shader, Cube& cube);
-void drawTwoCubesAgain(Shader& shader, unsigned int VAO);
-
-
-
 bool mouseInWindow = 1;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f));
@@ -41,7 +35,6 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 int main()
 {
     //initialistion boilerplate
-    std::cout << "Hello World!\n";
     if (glfwInit() == NULL)
     {
         std::cout << "Window initialisation bungled mate" << std::endl;
@@ -96,14 +89,10 @@ int main()
 
 
     // Shader loading
-    Shader depthShader("res/shaders/depthShader.vs", "res/shaders/depthShader.fs");
     Shader singleColor("res/shaders/shaderSingleColor.vs", "res/shaders/shaderSingleColor.fs");
-    Shader screenShader("res/shaders/screenShader.vs", "res/shaders/screenShader.fs");
-    //Shader modelShader("C:/programming/opengl/proj_1/ConsoleApplication1/res/shaders/modelShader.vs", "C:/programming/opengl/proj_1/ConsoleApplication1/res/shaders/modelShader.fs");
 
     // Model loading
     //Model backpack("models/backpack/backpack.obj");
-    //Model tree("models/Tree1/Tree1.obj");
 
     // Texture paths
     std::vector<std::string> cubeTexPaths = {
@@ -111,30 +100,7 @@ int main()
         "textures/container_diffuse.jpg"
     };
 
-    std::vector<std::string> floorTexPaths = {
-        "textures/metal_diffuse.png"
-    };
-
-    std::vector<std::string> grassTexPaths = {
-        "textures/grass_diffuse.png"
-    };
-    
-    std::vector<std::string> windowTexPaths = {
-        "textures/blending_transparent_window_diffuse.png"
-    };
-
     Cube cube(cubeCounterClockwise, cubeTexPaths); // Fucking hell lmao
-    Cube floor(floorVertNorm, floorInd, floorTexPaths);
-    Cube wall(quadVertices);
-    //Cube grass(squareNormals, squareInd, grassTexPaths);
-    //Cube o_window(squareNormals, squareInd, windowTexPaths);
-    
-
-    //for (unsigned int i = 0; i < grass.textures.size(); i++)
-    //{
-    //    glTextureParameteri(grass.textures[i].id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    //    glTextureParameteri(grass.textures[i].id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    //}
 
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -155,15 +121,6 @@ int main()
     glBindVertexArray(0);
 
 
-    std::vector<glm::vec3> windowPos = {
-    (glm::vec3(-1.5f, 0.0f, -0.48f)),
-    (glm::vec3(1.5f, 0.0f, 0.51f)),
-    (glm::vec3(0.0f, 0.0f, 0.7f)),
-    (glm::vec3(-0.3f, 0.0f, -2.3f)),
-    (glm::vec3(0.5f, 0.0f, -0.6f))
-    };
-
-
     // FPS and timekeeping
     double currentTime = glfwGetTime();
     float currentFrame = currentTime;     // get current time 
@@ -180,134 +137,23 @@ int main()
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat3 normalMatrix = glm::mat3(1.0);
 
+
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    glEnable(GL_STENCIL_TEST);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE); // If depth and stencil tests pass, we replace that fragment with our draw call fragment
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-
-   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-
-
-    // Framebuffers
-    unsigned int fbo;
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-    // Generate texture for framebuffer object
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewport_width, viewport_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    // Attach it to currently bound framebuffer object
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-
-    // Renderbuffer 
-    unsigned int rbo;
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    // Use renderbuffer for depth and stencil testing
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, viewport_width, viewport_height);
-    // Once enough memory is allocated we can unbind renderbuffer object
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    // Attach the renderbuffer object to the depth and stencil attachment of the framebuffer
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    {
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    //screenShader.setVec2("texelSize", glm::vec2(1 / viewport_width, 1 / viewport_height));
-
 
     while (!glfwWindowShouldClose(window))
     {
-        // FIRST PASS
-
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        // Rendering commands here
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
-        // DRAW SCENE
-
-        // View & Projection transformations
-        camera.cameraFront = camera.cameraFront * glm::vec3(-1.0f);
-        view = camera.getViewMatrix();
-        projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
-
-        singleColor.Use();
-        singleColor.setMat4("view", view);
-        singleColor.setMat4("projection", projection);
-
-        depthShader.Use();
-        depthShader.setMat4("view", view);
-        depthShader.setMat4("projection", projection);
-
-
-        glEnable(GL_CULL_FACE);
-        // Floor
-        depthShader.setMat4("model", glm::mat4(1.0f));
-        floor.Draw(depthShader);
-
-        // Cubes
-        drawTwoCubes(singleColor, cube);
-
-        // SECOND PASS
-        glBindFramebuffer(GL_FRAMEBUFFER, 0); // Back to default
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        // View & Projection transformations
-        camera.cameraFront = camera.cameraFront * glm::vec3(-1.0f);
         view = camera.getViewMatrix();
         projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
-
-        singleColor.Use();
+        
         singleColor.setMat4("view", view);
         singleColor.setMat4("projection", projection);
+        singleColor.setMat4("model", model);
+        cube.Draw(singleColor);     // Shader set to just output vec4(TexCoords, 0.5, 1.0)
 
-        depthShader.Use();
-        depthShader.setMat4("view", view);
-        depthShader.setMat4("projection", projection);
-
-        screenShader.Use();
-        screenShader.setMat4("view", view);
-        //screenShader.setMat4("projection", projection);
-
-        // Floor
-        depthShader.setMat4("model", glm::mat4(1.0f));
-        floor.Draw(depthShader);
-
-        // Cubes
-        drawTwoCubes(singleColor, cube);
-
-        glDisable(GL_CULL_FACE);
-
-        // Screen
-        screenShader.Use();
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.8f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.3f, 0.1f, 1.0f));
-        screenShader.setMat4("model", model);
-        glBindVertexArray(VAO);
-        glDisable(GL_DEPTH_TEST); // Make sure screen quad renders in front of everything else
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-              
 
         // Swap the buffers
         glfwSwapBuffers(window);
@@ -343,36 +189,7 @@ int main()
     return 0;
 
 }
-void drawTwoCubesAgain(Shader& shader, unsigned int VAO)
-{
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-    model = glm::scale(model, glm::vec3(1.1f));
-    shader.setMat4("model", model);
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
 
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(1.1f));
-    shader.setMat4("model", model);
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-}
-
-void drawTwoCubes(Shader& shader, Cube& cube)
-{
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-    shader.setMat4("model", model);
-    cube.Draw(shader);
-
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-    shader.setMat4("model", model);
-    cube.Draw(shader);
-
-}
 
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -464,55 +281,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.processMouseScroll((float)yoffset);
 }
-
-unsigned int load_tex(std::string texturePath)
-{
-    unsigned int textureId;
-    // Generate texture handle
-    glGenTextures(1, &textureId);
-
-    // Load texture using stbi
-    const char* path = texturePath.c_str(); // Can look at stbi_load() just taking a std::string
-    //load texture with stb_i
-    int width;
-    int height;
-    int nrChannels;
-    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
-
-    if (data)
-    {
-        GLenum format;
-        if (nrChannels == 1)
-            format = GL_RED;
-        else if (nrChannels == 2)
-            format = GL_RG;
-        else if (nrChannels == 3)
-            format = GL_RGB;
-        else
-            format = GL_RGBA; // Look here if things start breaking
-
-        // Generate texture 
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        // Free image load data
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cout << "Failed to load texture at: " << "\"" << path << "\"" << std::endl;
-        stbi_image_free(data);
-    }
-
-    return textureId;
-}
-
 
 
 /*
