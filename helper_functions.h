@@ -4,7 +4,7 @@
 #include <glad/glad.h>
 #include <iostream>
 
-#include "cube.h"
+#include "cube.h" 
 
 
 unsigned int load_tex(std::string texturePath);
@@ -70,3 +70,4 @@ void drawTwoCubes(Shader& shader, Cube& cube)
     shader.setMat4("model", model);
     cube.Draw(shader);
 }
+

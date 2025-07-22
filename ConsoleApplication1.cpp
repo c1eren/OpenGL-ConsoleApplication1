@@ -18,6 +18,7 @@
 #include "VBO.h"
 #include "shapes.h"
 #include "helper_functions.h"
+#include "skybox.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -89,6 +90,7 @@ int main()
 
 
     // Shader loading
+    Shader simpleShader("res/shaders/simple.vs", "res/shaders/simple.fs");
     Shader cubeMapShader("res/shaders/cubeMap.vs", "res/shaders/cubeMap.fs");
 
     // Model loading
@@ -96,11 +98,32 @@ int main()
 
     // Texture paths
     std::vector<std::string> cubeTexPaths = {
-        //"textures/marble_diffuse.jpg",
-        "textures/container_diffuse.jpg"
+        "textures/marble_diffuse.jpg",
+        //"textures/container_diffuse.jpg"
+       //"textures/awesomeface_diffuse.png"
+    };
+    Cube cube(cubeCounterClockwise, cubeTexPaths); // Fucking hell lmao
+
+    // Cubemap faces
+    std::vector<std::string> texture_faces = {
+        "skybox/skybox/right.jpg",
+        "skybox/skybox/left.jpg",
+        "skybox/skybox/top.jpg",
+        "skybox/skybox/bottom.jpg",
+        "skybox/skybox/front.jpg",
+        "skybox/skybox/back.jpg"
     };
 
-    Cube cube(cubeCounterClockwise, cubeTexPaths); // Fucking hell lmao
+    std::vector<std::string> milkyway_faces = {
+        "skybox/milkyway/right.png",
+        "skybox/milkyway/left.png",
+        "skybox/milkyway/top.png",
+        "skybox/milkyway/bottom.png",
+        "skybox/milkyway/front.png",
+        "skybox/milkyway/back.png"
+    };
+
+    Skybox skybox(milkyway_faces);
 
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -108,15 +131,18 @@ int main()
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, cubeStandard.size() * sizeof(float), &cubeStandard[0], GL_STATIC_DRAW);
 
-    glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), &quadVertices[0], GL_STATIC_DRAW);
+    //glGenBuffers(1, &EBO);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, cubeInd.size() * sizeof(unsigned int), &cubeInd[0], GL_STATIC_DRAW);
 
     // Vertex positions
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     // Vertex normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    //glEnableVertexAttribArray(1);
+   // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
     glBindVertexArray(0);
 
@@ -139,7 +165,8 @@ int main()
 
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL); // Set because skybox using pos.xyww
+    //glEnable(GL_CULL_FACE);
 
 /*#####################################################################################################################################################*/
     // RENDER LOOP
@@ -153,11 +180,18 @@ int main()
 
         view = camera.getViewMatrix();
         projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
-        
-        cubeMapShader.setMat4("view", view);
+
+        glDepthMask(GL_TRUE);
+        glEnable(GL_CULL_FACE);
+        simpleShader.setMat4("view", view);
+        simpleShader.setMat4("projection", projection);
+        simpleShader.setMat4("model", model);
+        cube.Draw(simpleShader);     // Shader set to just output vec4(TexCoords, 0.5, 1.0)
+
         cubeMapShader.setMat4("projection", projection);
-        cubeMapShader.setMat4("model", model);
-        cube.Draw(cubeMapShader);     // Shader set to just output vec4(TexCoords, 0.5, 1.0)
+        cubeMapShader.setMat4("view", glm::mat4(glm::mat3(camera.getViewMatrix())));    // Eliminating translation factor from mat4
+        skybox.draw();
+
 
 
         // Swap the buffers
@@ -290,6 +324,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.processMouseScroll((float)yoffset);
 }
+
 
 
 /*
