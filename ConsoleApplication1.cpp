@@ -12,12 +12,13 @@
 #include "camera.h"
 #include "constants.h"
 #include "shader.h"
-//#include "model.h"
+#include "model.h"
 #include "cube.h"
 #include "VAO.h"
 #include "VBO.h"
 #include "shapes.h"
 #include "helper_functions.h"
+#include "skybox.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -89,18 +90,42 @@ int main()
 
 
     // Shader loading
-    Shader singleColor("res/shaders/shaderSingleColor.vs", "res/shaders/shaderSingleColor.fs");
+    Shader simpleShader("res/shaders/simple.vs", "res/shaders/simple.fs");
+    Shader cubeMapShader("res/shaders/cubeMap.vs", "res/shaders/cubeMap.fs");
 
     // Model loading
     //Model backpack("models/backpack/backpack.obj");
 
     // Texture paths
     std::vector<std::string> cubeTexPaths = {
-        //"textures/marble_diffuse.jpg",
-        "textures/container_diffuse.jpg"
+        "textures/marble_diffuse.jpg",
+        //"textures/container_diffuse.jpg"
+       //"textures/awesomeface_diffuse.png"
+    };
+    Cube cube(cubeNormals, cubeInd, cubeTexPaths); // Fucking hell lmao
+
+    // Cubemap faces
+    std::vector<std::string> texture_faces = {
+        "skybox/skybox/right.jpg",
+        "skybox/skybox/left.jpg",
+        "skybox/skybox/top.jpg",
+        "skybox/skybox/bottom.jpg",
+        "skybox/skybox/front.jpg",
+        "skybox/skybox/back.jpg"
     };
 
-    Cube cube(cubeCounterClockwise, cubeTexPaths); // Fucking hell lmao
+    std::vector<std::string> milkyway_faces = {
+        "skybox/milkyway/right.png",
+        "skybox/milkyway/left.png",
+        "skybox/milkyway/top.png",
+        "skybox/milkyway/bottom.png",
+        "skybox/milkyway/front.png",
+        "skybox/milkyway/back.png"
+    };
+
+    Skybox skybox(milkyway_faces);
+    //Skybox skybox(texture_faces);
+
 
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -108,15 +133,18 @@ int main()
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, cubeStandard.size() * sizeof(float), &cubeStandard[0], GL_STATIC_DRAW);
 
-    glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), &quadVertices[0], GL_STATIC_DRAW);
+    //glGenBuffers(1, &EBO);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, cubeInd.size() * sizeof(unsigned int), &cubeInd[0], GL_STATIC_DRAW);
 
     // Vertex positions
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     // Vertex normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    //glEnableVertexAttribArray(1);
+   // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
     glBindVertexArray(0);
 
@@ -139,7 +167,13 @@ int main()
 
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL); // Set because skybox using pos.xyww
+    //glEnable(GL_CULL_FACE);
+
+/*#####################################################################################################################################################*/
+    // RENDER LOOP
+/*#####################################################################################################################################################*/
+
 
 /*#####################################################################################################################################################*/
     // RENDER LOOP
@@ -153,11 +187,34 @@ int main()
 
         view = camera.getViewMatrix();
         projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
-        
-        singleColor.setMat4("view", view);
-        singleColor.setMat4("projection", projection);
-        singleColor.setMat4("model", model);
-        cube.Draw(singleColor);     // Shader set to just output vec4(TexCoords, 0.5, 1.0)
+
+        glDepthMask(GL_TRUE);
+        //glEnable(GL_CULL_FACE);
+        glm::mat4 model = glm::mat4(1.0f);
+        simpleShader.setMat4("view", view);
+        simpleShader.setMat4("projection", projection);
+        model = glm::rotate(model, glm::radians(((float)currentTime * 10)), glm::vec3(0.5f, 1.0f, 0.0f));
+        simpleShader.setMat4("model", model);
+        normalMatrix = glm::mat3(glm::transpose(glm::inverse(model)));
+        simpleShader.setMat3("normal", normalMatrix);
+        simpleShader.setVec3("cameraPos", camera.cameraPos);
+        simpleShader.setInt("type", 1);
+        cube.Draw(simpleShader);     // Shader set to just output vec4(TexCoords, 0.5, 1.0)
+
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0f));
+        normalMatrix = glm::mat3(glm::transpose(glm::inverse(model)));
+        simpleShader.setMat3("normal", normalMatrix);
+        simpleShader.setInt("type", 0);
+        model = glm::rotate(model, glm::radians(((float)-currentTime * 10)), glm::vec3(0.5f, 1.0f, 0.0f));
+        simpleShader.setMat4("model", model);
+        cube.Draw(simpleShader);
+
+        cubeMapShader.setMat4("projection", projection);
+        cubeMapShader.setMat4("view", glm::mat4(glm::mat3(camera.getViewMatrix())));    // Eliminating translation factor from mat4
+        skybox.draw();
+
 
 
         // Swap the buffers
@@ -290,6 +347,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.processMouseScroll((float)yoffset);
 }
+
 
 
 /*
