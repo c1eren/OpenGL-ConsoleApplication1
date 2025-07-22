@@ -102,7 +102,7 @@ int main()
         //"textures/container_diffuse.jpg"
        //"textures/awesomeface_diffuse.png"
     };
-    Cube cube(cubeCounterClockwise, cubeTexPaths); // Fucking hell lmao
+    Cube cube(cubeNormals, cubeInd, cubeTexPaths); // Fucking hell lmao
 
     // Cubemap faces
     std::vector<std::string> texture_faces = {
@@ -123,7 +123,9 @@ int main()
         "skybox/milkyway/back.png"
     };
 
-    Skybox skybox(milkyway_faces);
+    //Skybox skybox(milkyway_faces);
+    Skybox skybox(texture_faces);
+
 
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -182,10 +184,14 @@ int main()
         projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
 
         glDepthMask(GL_TRUE);
-        glEnable(GL_CULL_FACE);
+        //glEnable(GL_CULL_FACE);
         simpleShader.setMat4("view", view);
         simpleShader.setMat4("projection", projection);
+        model = glm::rotate(model, glm::radians((float)sin(currentTime) / 10), glm::vec3(0.5f, 1.0f, 0.0f));
         simpleShader.setMat4("model", model);
+        normalMatrix = glm::mat3(glm::transpose(glm::inverse(model)));
+        simpleShader.setMat3("normal", normalMatrix);
+        simpleShader.setVec3("cameraPos", camera.cameraPos);
         cube.Draw(simpleShader);     // Shader set to just output vec4(TexCoords, 0.5, 1.0)
 
         cubeMapShader.setMat4("projection", projection);

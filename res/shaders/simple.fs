@@ -2,20 +2,31 @@
 out vec4 FragColor;
 
 in vec2 TexCoords;
+in vec3 Normal;
+in vec3 worldPosition;
+
 struct Material{
 	sampler2D texture_diffuse1;
-	sampler2D texture_diffuse2;
-	sampler2D texture_diffuse3;
-	sampler2D texture_specular1;
-	sampler2D texture_specular2;
 	float shininess;
 };
 uniform Material material;
 
+uniform vec3 cameraPos;
+uniform samplerCube skybox; 
+
 void main()
 {    
-	vec4 texCol = texture(material.texture_diffuse1, TexCoords); 
+	vec3 I = normalize(worldPosition - cameraPos); // Direction vector
+	vec3 R = reflect(I, normalize(Normal));	  // Use normal direction vectors to calculate reflection factor
+	FragColor = vec4(texture(skybox, R).rgb, 1.0);
+
+
+	//vec4 matTex = vec4(texture(material.texture_diffuse1, TexCoords));
+	//vec4 skyTex = vec4(texture(skybox, R).rgb, 1.0);
+	//FragColor = mix(texture(skybox, R), texture(material.texture_diffuse1, TexCoords), 0.4);
+
+	//vec4 texCol = texture(material.texture_diffuse1, TexCoords); 
 	//FragColor = vec4(0.04, 0.28, 0.26, 1.0);
-	FragColor = texCol;
+	//FragColor = texCol;
 	//FragColor = vec4(TexCoords, 0.5, 1.0);
 }
