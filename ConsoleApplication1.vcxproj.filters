@@ -60,6 +60,9 @@
     <ClCompile Include="dumps\vertices_fix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\shader.vs" />
@@ -77,6 +80,10 @@
     <None Include="res\shaders\shaderSingleColor.vs" />
     <None Include="res\shaders\screenShader.vs" />
     <None Include="res\shaders\screenShader.fs" />
+    <None Include="res\shaders\cubeMap.fs" />
+    <None Include="res\shaders\cubeMap.vs" />
+    <None Include="res\shaders\simple.fs" />
+    <None Include="res\shaders\simple.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
@@ -113,6 +120,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cube.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helper_functions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="skybox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

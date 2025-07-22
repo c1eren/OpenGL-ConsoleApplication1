@@ -12,7 +12,7 @@
 #include "camera.h"
 #include "constants.h"
 #include "shader.h"
-//#include "model.h"
+#include "model.h"
 #include "cube.h"
 #include "VAO.h"
 #include "VBO.h"
@@ -123,8 +123,8 @@ int main()
         "skybox/milkyway/back.png"
     };
 
-    //Skybox skybox(milkyway_faces);
-    Skybox skybox(texture_faces);
+    Skybox skybox(milkyway_faces);
+    //Skybox skybox(texture_faces);
 
 
     GLuint VAO, VBO, EBO;
@@ -185,14 +185,26 @@ int main()
 
         glDepthMask(GL_TRUE);
         //glEnable(GL_CULL_FACE);
+        glm::mat4 model = glm::mat4(1.0f);
         simpleShader.setMat4("view", view);
         simpleShader.setMat4("projection", projection);
-        model = glm::rotate(model, glm::radians((float)sin(currentTime) / 10), glm::vec3(0.5f, 1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(((float)currentTime * 10)), glm::vec3(0.5f, 1.0f, 0.0f));
         simpleShader.setMat4("model", model);
         normalMatrix = glm::mat3(glm::transpose(glm::inverse(model)));
         simpleShader.setMat3("normal", normalMatrix);
         simpleShader.setVec3("cameraPos", camera.cameraPos);
+        simpleShader.setInt("type", 1);
         cube.Draw(simpleShader);     // Shader set to just output vec4(TexCoords, 0.5, 1.0)
+
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0f));
+        normalMatrix = glm::mat3(glm::transpose(glm::inverse(model)));
+        simpleShader.setMat3("normal", normalMatrix);
+        simpleShader.setInt("type", 0);
+        model = glm::rotate(model, glm::radians(((float)-currentTime * 10)), glm::vec3(0.5f, 1.0f, 0.0f));
+        simpleShader.setMat4("model", model);
+        cube.Draw(simpleShader);
 
         cubeMapShader.setMat4("projection", projection);
         cubeMapShader.setMat4("view", glm::mat4(glm::mat3(camera.getViewMatrix())));    // Eliminating translation factor from mat4

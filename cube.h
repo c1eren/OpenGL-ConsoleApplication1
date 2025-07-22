@@ -23,7 +23,7 @@
 
 extern std::array<std::string, 4> texTypes;
 
-struct Texture {
+struct CubeTex {
 	unsigned int id;
 	std::string type; // eg. diffuse, specular
 	std::string path;
@@ -35,8 +35,8 @@ public:
 	// Mesh data
 	std::span<float>			vertices;
 	std::span<unsigned int>		indices;
-	std::vector<Texture>		textures;
-	static std::vector<Texture> textures_loaded;
+	std::vector<CubeTex>		textures;
+	static std::vector<CubeTex> textures_loaded;
 
 	Cube(std::span<float> vertices, std::span<unsigned int> indices, std::vector<std::string> texturePaths);
 	Cube(std::span<float> vertices, std::vector<std::string> texturePaths);
@@ -62,5 +62,5 @@ private:
 
 
 
-	Texture loadTextures(std::string texturePath);
+	CubeTex loadTextures(std::string texturePath);
 };

@@ -11,7 +11,7 @@ std::array<std::string, 4> texTypes{
 	"emission"
 };
 
-std::vector<Texture> Cube::textures_loaded; // Available to all Cube instances
+std::vector<CubeTex> Cube::textures_loaded; // Available to all Cube instances
 
 Cube::Cube(std::span<float> vertices, std::span<unsigned int> indices, std::vector<std::string> texturePaths)
 {
@@ -49,10 +49,10 @@ Cube::Cube(std::span<float> vertices)
 }
 
 
-Texture Cube::loadTextures(std::string texturePath)
+CubeTex Cube::loadTextures(std::string texturePath)
 {
 
-	Texture texture;
+	CubeTex texture;
 
 	// Check if texture is already loaded
 	bool skip = 0;
