@@ -751,3 +751,48 @@ if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 }
 glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+// Model loading
+//Model backpack("models/backpack/backpack.obj");
+
+// Texture paths
+std::vector<std::string> cubeTexPaths = {
+    "textures/marble_diffuse.jpg",
+    //"textures/container_diffuse.jpg"
+   //"textures/awesomeface_diffuse.png"
+};
+Cube cube(cubeNormals, cubeInd, cubeTexPaths); // Fucking hell lmao
+
+// Cubemap faces
+std::vector<std::string> texture_faces = {
+    "skybox/skybox/right.jpg",
+    "skybox/skybox/left.jpg",
+    "skybox/skybox/top.jpg",
+    "skybox/skybox/bottom.jpg",
+    "skybox/skybox/front.jpg",
+    "skybox/skybox/back.jpg"
+};
+
+std::vector<std::string> milkyway_faces = {
+    "skybox/milkyway/right.png",
+    "skybox/milkyway/left.png",
+    "skybox/milkyway/top.png",
+    "skybox/milkyway/bottom.png",
+    "skybox/milkyway/front.png",
+    "skybox/milkyway/back.png"
+};
+
+Skybox skybox(milkyway_faces);
+//Skybox skybox(texture_faces);
+
+unsigned int texID = load_tex("textures/container2_diffuse.png");
+unsigned int texID2 = load_tex("textures/awesomeface_diffuse.png");
+
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, texID);
+glActiveTexture(GL_TEXTURE1);
+glBindTexture(GL_TEXTURE_2D, texID2);
+
+shader.setInt("texture_diffuse1", 0);
+shader.setInt("texture_diffuse2", 1);

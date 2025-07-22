@@ -399,3 +399,112 @@ float quadVertices[] = {
      1.0f, -1.0f,  1.0f,  0.0f,
      1.0f,  1.0f,  1.0f,  1.0f
 };
+
+std::array<float, 24> skyVert = {
+    // Positions (8 corners)
+    -0.5f, -0.5f, -0.5f,  // 0
+     0.5f, -0.5f, -0.5f,  // 1
+     0.5f,  0.5f, -0.5f,  // 2
+    -0.5f,  0.5f, -0.5f,  // 3
+    -0.5f, -0.5f,  0.5f,  // 4
+     0.5f, -0.5f,  0.5f,  // 5
+     0.5f,  0.5f,  0.5f,  // 6
+    -0.5f,  0.5f,  0.5f   // 7
+};
+
+std::array<unsigned int, 36> skyInd = {
+    // Back face
+    0, 1, 2,
+    2, 3, 0,
+
+    // Front face
+    4, 5, 6,
+    6, 7, 4,
+
+    // Left face
+    4, 0, 3,
+    3, 7, 4,
+
+    // Right face
+    1, 5, 6,
+    6, 2, 1,
+
+    // Bottom face
+    4, 5, 1,
+    1, 0, 4,
+
+    // Top face
+    3, 2, 6,
+    6, 7, 3
+};
+
+std::array<float, 180> cyooob = {
+    // back face
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // bottom-left
+    0.5f, 0.5f, -0.5f, 1.0f, 1.0f, // top-right
+    0.5f, -0.5f, -0.5f, 1.0f, 0.0f, // bottom-right
+    0.5f, 0.5f, -0.5f, 1.0f, 1.0f, // top-right
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // bottom-left
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, // top-left
+    // front face
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // bottom-left
+    0.5f, -0.5f, 0.5f, 1.0f, 0.0f, // bottom-right
+    0.5f, 0.5f, 0.5f, 1.0f, 1.0f, // top-right
+    0.5f, 0.5f, 0.5f, 1.0f, 1.0f, // top-right
+    -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, // top-left
+    - 0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // bottom-left
+    // left face
+    -0.5f, 0.5f, 0.5f, 1.0f, 0.0f, // top-right
+    -0.5f, 0.5f, -0.5f, 1.0f, 1.0f, // top-left
+    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // bottom-left
+    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // bottom-left
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // bottom-right
+    -0.5f, 0.5f, 0.5f, 1.0f, 0.0f, // top-right
+    // right face
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, // top-left
+    0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // bottom-right
+    0.5f, 0.5f, -0.5f, 1.0f, 1.0f, // top-right
+    0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // bottom-right
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, // top-left
+    0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // bottom-left
+    // bottom face
+    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // top-right
+    0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // top-left
+    0.5f, -0.5f, 0.5f, 1.0f, 0.0f, // bottom-left
+    0.5f, -0.5f, 0.5f, 1.0f, 0.0f, // bottom-left
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // bottom-right
+    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // top-right
+    // top face
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, // top-left
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, // bottom-right
+    0.5f, 0.5f, -0.5f, 1.0f, 1.0f, // top-right
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, // bottom-right
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, // top-left
+    -0.5f, 0.5f, 0.5f, 0.0f, 0.0f // bottom-left
+};
+
+std::array<unsigned int, 36> cyooobInd = {
+    // Back face (0, 1, 2, 3)
+    0, 1, 2,
+    0, 2, 3,
+
+    // Front face (4, 5, 6, 7)
+    4, 5, 6,
+    4, 6, 7,
+
+    // Left face (8, 9, 10, 11)
+    8, 9, 10,
+    8, 10, 11,
+
+    // Right face (12, 13, 14, 15)
+    12, 13, 14,
+    12, 14, 15,
+
+    // Bottom face (16, 17, 18, 19)
+    16, 17, 18,
+    16, 18, 19,
+
+    // Top face (20, 21, 22, 23)
+    20, 21, 22,
+    20, 22, 23
+};

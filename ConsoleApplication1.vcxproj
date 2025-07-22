@@ -187,10 +187,13 @@
     <ClCompile Include="VBO.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\shaders\blue.fs" />
     <None Include="res\shaders\cubeMap.fs" />
     <None Include="res\shaders\cubeMap.vs" />
     <None Include="res\shaders\depthShader.fs" />
     <None Include="res\shaders\depthShader.vs" />
+    <None Include="res\shaders\fourColorCube.vs" />
+    <None Include="res\shaders\green.fs" />
     <None Include="res\shaders\lightingShader.frag" />
     <None Include="res\shaders\lightingShaderProto.frag" />
     <None Include="res\shaders\lightingShader.vs" />
@@ -198,6 +201,7 @@
     <None Include="res\shaders\lightCubeShader.vs" />
     <None Include="res\shaders\modelShader.fs" />
     <None Include="res\shaders\modelShader.vs" />
+    <None Include="res\shaders\red.fs" />
     <None Include="res\shaders\screenShader.fs" />
     <None Include="res\shaders\screenShader.vs" />
     <None Include="res\shaders\shader.frag" />
@@ -206,6 +210,7 @@
     <None Include="res\shaders\shaderSingleColor.vs" />
     <None Include="res\shaders\simple.fs" />
     <None Include="res\shaders\simple.vs" />
+    <None Include="res\shaders\yellow.fs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">

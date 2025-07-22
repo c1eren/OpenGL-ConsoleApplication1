@@ -90,41 +90,10 @@ int main()
 
 
     // Shader loading
-    Shader simpleShader("res/shaders/simple.vs", "res/shaders/simple.fs");
-    Shader cubeMapShader("res/shaders/cubeMap.vs", "res/shaders/cubeMap.fs");
-
-    // Model loading
-    //Model backpack("models/backpack/backpack.obj");
-
-    // Texture paths
-    std::vector<std::string> cubeTexPaths = {
-        "textures/marble_diffuse.jpg",
-        //"textures/container_diffuse.jpg"
-       //"textures/awesomeface_diffuse.png"
-    };
-    Cube cube(cubeNormals, cubeInd, cubeTexPaths); // Fucking hell lmao
-
-    // Cubemap faces
-    std::vector<std::string> texture_faces = {
-        "skybox/skybox/right.jpg",
-        "skybox/skybox/left.jpg",
-        "skybox/skybox/top.jpg",
-        "skybox/skybox/bottom.jpg",
-        "skybox/skybox/front.jpg",
-        "skybox/skybox/back.jpg"
-    };
-
-    std::vector<std::string> milkyway_faces = {
-        "skybox/milkyway/right.png",
-        "skybox/milkyway/left.png",
-        "skybox/milkyway/top.png",
-        "skybox/milkyway/bottom.png",
-        "skybox/milkyway/front.png",
-        "skybox/milkyway/back.png"
-    };
-
-    Skybox skybox(milkyway_faces);
-    //Skybox skybox(texture_faces);
+    Shader red("res/shaders/fourColorCube.vs", "res/shaders/red.fs");
+    Shader green("res/shaders/fourColorCube.vs", "res/shaders/green.fs");
+    Shader blue("res/shaders/fourColorCube.vs", "res/shaders/blue.fs");
+    Shader yellow ("res/shaders/fourColorCube.vs", "res/shaders/yellow.fs");
 
 
     GLuint VAO, VBO, EBO;
@@ -133,21 +102,13 @@ int main()
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, cubeStandard.size() * sizeof(float), &cubeStandard[0], GL_STATIC_DRAW);
-
-    //glGenBuffers(1, &EBO);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, cubeInd.size() * sizeof(unsigned int), &cubeInd[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, cubeCounterClockwise.size() * sizeof(float), &cubeCounterClockwise[0], GL_STATIC_DRAW);
 
     // Vertex positions
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    // Vertex normals
-    //glEnableVertexAttribArray(1);
-   // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 
     glBindVertexArray(0);
-
 
     // FPS and timekeeping
     double currentTime = glfwGetTime();
@@ -159,21 +120,51 @@ int main()
     camera.camFPS = 0;
     camera.camZoom = 60.0f;
 
-    // View, projection, model matrices
-    glm::mat4 projection = glm::mat4(1.0f);
-    glm::mat4 view = glm::mat4(1.0f);
-    glm::mat4 model = glm::mat4(1.0f);
-    glm::mat3 normalMatrix = glm::mat3(1.0);
+
+    // Uniform Buffers etc.
+    // Get block index so we can set binding point
+    unsigned int redIndex    = glGetUniformBlockIndex(red.m_Program,    "Matrices");
+    unsigned int greenIndex  = glGetUniformBlockIndex(green.m_Program,  "Matrices");
+    unsigned int blueIndex   = glGetUniformBlockIndex(blue.m_Program,   "Matrices");
+    unsigned int yellowIndex = glGetUniformBlockIndex(yellow.m_Program, "Matrices");
+
+    // Set binding point for the Matrices block in our shaders
+    glUniformBlockBinding(red.m_Program,    redIndex,    0);
+    glUniformBlockBinding(green.m_Program,  greenIndex,  0);
+    glUniformBlockBinding(blue.m_Program,   blueIndex,   0);
+    glUniformBlockBinding(yellow.m_Program, yellowIndex, 0);
+
+    // Create uniform buffer object and set binding to 0
+    unsigned int UBO;
+    glGenBuffers(1, &UBO);
+
+    // Bind buffer, designate size in memory, unbind buffer
+    glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // Set binding point for entire range of buffer to 0
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBO, 0, 2 * sizeof(glm::mat4));
+
+    // Projection matrix
+    glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
+
+    // Send projection matrix data to uniform buffer at offset = 0
+    glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL); // Set because skybox using pos.xyww
+    glDepthFunc(GL_LESS); 
     //glEnable(GL_CULL_FACE);
+    //glDisable(GL_CULL_FACE);
+    glEnable(GL_PROGRAM_POINT_SIZE);
 
-/*#####################################################################################################################################################*/
-    // RENDER LOOP
-/*#####################################################################################################################################################*/
-
+    const float speed = 50.0f;
+    const float subSpeed = 100.0f;
+    const glm::vec3 spin = glm::vec3(0.0f, 1.0f, 0.0f);
+    const glm::vec3 subSpin = glm::vec3(0.0f, 1.0f, 0.0f);
 
 /*#####################################################################################################################################################*/
     // RENDER LOOP
@@ -185,36 +176,54 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        view = camera.getViewMatrix();
-        projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
+        // Send view matrix data to uniform buffer at offset = sizeof(projection matrix)
+        glm::mat4 view = camera.getViewMatrix();
+        glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-        glDepthMask(GL_TRUE);
-        //glEnable(GL_CULL_FACE);
+        // Red cube
+        glBindVertexArray(VAO);
+        red.Use();
         glm::mat4 model = glm::mat4(1.0f);
-        simpleShader.setMat4("view", view);
-        simpleShader.setMat4("projection", projection);
-        model = glm::rotate(model, glm::radians(((float)currentTime * 10)), glm::vec3(0.5f, 1.0f, 0.0f));
-        simpleShader.setMat4("model", model);
-        normalMatrix = glm::mat3(glm::transpose(glm::inverse(model)));
-        simpleShader.setMat3("normal", normalMatrix);
-        simpleShader.setVec3("cameraPos", camera.cameraPos);
-        simpleShader.setInt("type", 1);
-        cube.Draw(simpleShader);     // Shader set to just output vec4(TexCoords, 0.5, 1.0)
-
-
+        model = glm::rotate(model, glm::radians(((float)currentTime * speed)), spin);
+        model = glm::translate(model, glm::vec3(-0.75f, 0.75f, 0.0f)); // Top-left
+        model = glm::rotate(model, glm::radians(((float)currentTime * subSpeed)), subSpin);
+        red.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        
+        // Green cube
+        glBindVertexArray(VAO);
+        green.Use();
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0f));
-        normalMatrix = glm::mat3(glm::transpose(glm::inverse(model)));
-        simpleShader.setMat3("normal", normalMatrix);
-        simpleShader.setInt("type", 0);
-        model = glm::rotate(model, glm::radians(((float)-currentTime * 10)), glm::vec3(0.5f, 1.0f, 0.0f));
-        simpleShader.setMat4("model", model);
-        cube.Draw(simpleShader);
+        model = glm::rotate(model, glm::radians(((float)currentTime * speed)), spin);
+        model = glm::translate(model, glm::vec3(0.75f, 0.75f, 0.0f)); // Top-right
+        model = glm::rotate(model, glm::radians(((float)currentTime * subSpeed)), subSpin);
+        green.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        cubeMapShader.setMat4("projection", projection);
-        cubeMapShader.setMat4("view", glm::mat4(glm::mat3(camera.getViewMatrix())));    // Eliminating translation factor from mat4
-        skybox.draw();
+        // Blue cube
+        glBindVertexArray(VAO);
+        blue.Use();
+        model = glm::mat4(1.0f);
+        model = glm::rotate(model, glm::radians(((float)currentTime * speed)), spin);
+        model = glm::translate(model, glm::vec3(0.75f, -0.75f, 0.0f)); // Bottom-right
+        model = glm::rotate(model, glm::radians(((float)currentTime * subSpeed)), subSpin);
+        blue.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // Yellow cube
+        glBindVertexArray(VAO);
+        yellow.Use();
+        model = glm::mat4(1.0f);
+        model = glm::rotate(model, glm::radians(((float)currentTime * speed)), spin);
+        model = glm::translate(model, glm::vec3(-0.75f, -0.75f, 0.0f)); // Bottom-left
+        model = glm::rotate(model, glm::radians(((float)currentTime * subSpeed)), subSpin);
+        yellow.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+        //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 
         // Swap the buffers
