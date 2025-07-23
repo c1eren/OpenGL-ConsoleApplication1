@@ -88,11 +88,17 @@ int main()
     // Hide and capture cursor when application has focus
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+    std::vector<std::string> texPaths = {
+        "textures/container2_diffuse.png"
+    };
+
     // Model loading
     Model backpack("models/backpack/backpack.obj");
+    Cube cube(cubeNormalsNoInd, texPaths);
 
     // Shader loading
-    Shader shader("res/shaders/simple.vs", "res/shaders/simple.fs", "res/shaders/simple.gs");
+    Shader shader("res/shaders/simple.vs", "res/shaders/simple.fs");
+    Shader viewNorm("res/shaders/viewNormals.vs", "res/shaders/viewNormals.fs", "res/shaders/viewNormals.gs");
 
     // Vertex data
     //float points[] = {
@@ -124,10 +130,10 @@ int main()
     unsigned int UBO;
     glGenBuffers(1, &UBO);
     glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4) + sizeof(glm::mat3x4), NULL, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBO, 0, 2 * sizeof(glm::mat4));
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBO, 0, 2 * sizeof(glm::mat4) + sizeof(glm::mat3x4));
     glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
     glBindBuffer(GL_UNIFORM_BUFFER, UBO);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
@@ -150,6 +156,8 @@ int main()
     //glDisable(GL_CULL_FACE);
     glEnable(GL_PROGRAM_POINT_SIZE);
 
+    const float speed = 10.0f;
+
 
 /*#####################################################################################################################################################*/
     // RENDER LOOP
@@ -168,12 +176,32 @@ int main()
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         glm::mat4 model = glm::mat4(1.0);
-        shader.setFloat("time", currentTime);
+        model = glm::rotate(model, glm::radians((float)(currentTime * speed)), glm::vec3(1.0f, 1.0f, 0.0f));
         shader.setMat4("model", model);
-
         backpack.Draw(shader);
 
-        
+        // Send normal matrix to uniform block inside vs
+        viewNorm.setMat4("model", model);
+        glm::mat3x4 paddedNormal = glm::mat3x4(glm::transpose(glm::inverse(view * model))); // This is important, adhere to UBO alignment please
+        glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+        glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat3x4), glm::value_ptr(paddedNormal));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        backpack.Draw(viewNorm);
+
+        model = glm::mat4(1.0);
+        model = glm::translate(model, glm::vec3(3.0f, 0.0f, 3.0f));
+        model = glm::rotate(model, glm::radians((float)(currentTime * speed)), glm::vec3(1.0f, 1.0f, 0.0f));
+        shader.setMat4("model", model);
+        cube.Draw(shader);
+
+        // Send normal matrix to uniform block inside vs
+        viewNorm.setMat4("model", model);
+        paddedNormal = glm::mat3x4(glm::transpose(glm::inverse(view * model))); // This is important, adhere to UBO alignment please
+        glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+        glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat3x4), glm::value_ptr(paddedNormal));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        cube.Draw(viewNorm);
+    
 
         // Swap the buffers
         glfwSwapBuffers(window);

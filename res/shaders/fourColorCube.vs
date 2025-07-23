@@ -6,6 +6,7 @@ layout (std140) uniform Matrices
 {
     mat4 projection;
     mat4 view;
+    mat3 normals;
 };
 
 uniform mat4 model;

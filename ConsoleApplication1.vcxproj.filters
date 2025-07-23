@@ -90,6 +90,9 @@
     <None Include="res\shaders\red.fs" />
     <None Include="res\shaders\yellow.fs" />
     <None Include="res\shaders\simple.gs" />
+    <None Include="res\shaders\viewNormals.gs" />
+    <None Include="res\shaders\viewNormals.vs" />
+    <None Include="res\shaders\viewNormals.fs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
