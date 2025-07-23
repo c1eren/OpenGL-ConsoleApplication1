@@ -93,26 +93,15 @@ int main()
 
     Shader shader("res/shaders/simple.vs", "res/shaders/simple.fs", "res/shaders/simple.gs");
 
-    // Geometry shader
-    const char* shaderText = {
-        "#version 460 core\n"
-        "layout (points) in;\n"
-        "layout (points, max_vertices = 1) out;\n"
-        "void main() {\n"
-        "gl_Position = gl_in[0].gl_Position;\n"
-        "EmitVertex();\n"
-        "EndPrimitive();\n"
-        "}"
-    };
-
     // Vertex data
 
     float points[] = {
-        -0.5f,  0.5f, // top-left
-         0.5f,  0.5f, // top-right
-         0.5f, -0.5f, // bottom-right
-        -0.5f, -0.5f  // bottom-left
+    -0.5f,  0.5f,  1.0f,  0.0f,  0.0f, // top-left
+     0.5f,  0.5f,  0.0f,  1.0f,  0.0f, // top-right
+     0.5f, -0.5f,  0.0f,  0.0f,  1.0f, // bottom-right
+    -0.5f, -0.5f,  1.0f,  1.0f,  0.0f  // bottom-left
     };
+
 
     GLuint VAO, VBO;
     glGenVertexArrays(1, &VAO);
@@ -124,7 +113,10 @@ int main()
 
     // Vertex positions
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
 
     glBindVertexArray(0);
 
