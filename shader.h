@@ -15,6 +15,9 @@ public:
 	//constructor reads and builds the shader
 	Shader(const GLchar* vertexSourcePath, const GLchar* fragmentSourcePath);
 
+	// Overloaded geometry shader option
+	Shader(const GLchar* vertexSourcePath, const GLchar* fragmentSourcePath, const GLchar* geometrySourcePath);
+
 	//use the program
 	void Use();
 

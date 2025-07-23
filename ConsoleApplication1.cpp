@@ -90,23 +90,41 @@ int main()
 
 
     // Shader loading
-    Shader red("res/shaders/fourColorCube.vs", "res/shaders/red.fs");
-    Shader green("res/shaders/fourColorCube.vs", "res/shaders/green.fs");
-    Shader blue("res/shaders/fourColorCube.vs", "res/shaders/blue.fs");
-    Shader yellow ("res/shaders/fourColorCube.vs", "res/shaders/yellow.fs");
 
+    Shader shader("res/shaders/simple.vs", "res/shaders/simple.fs", "res/shaders/simple.gs");
 
-    GLuint VAO, VBO, EBO;
+    // Geometry shader
+    const char* shaderText = {
+        "#version 460 core\n"
+        "layout (points) in;\n"
+        "layout (points, max_vertices = 1) out;\n"
+        "void main() {\n"
+        "gl_Position = gl_in[0].gl_Position;\n"
+        "EmitVertex();\n"
+        "EndPrimitive();\n"
+        "}"
+    };
+
+    // Vertex data
+
+    float points[] = {
+        -0.5f,  0.5f, // top-left
+         0.5f,  0.5f, // top-right
+         0.5f, -0.5f, // bottom-right
+        -0.5f, -0.5f  // bottom-left
+    };
+
+    GLuint VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, cubeCounterClockwise.size() * sizeof(float), &cubeCounterClockwise[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
 
     // Vertex positions
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
     glBindVertexArray(0);
 
@@ -121,50 +139,12 @@ int main()
     camera.camZoom = 60.0f;
 
 
-    // Uniform Buffers etc.
-    // Get block index so we can set binding point
-    unsigned int redIndex    = glGetUniformBlockIndex(red.m_Program,    "Matrices");
-    unsigned int greenIndex  = glGetUniformBlockIndex(green.m_Program,  "Matrices");
-    unsigned int blueIndex   = glGetUniformBlockIndex(blue.m_Program,   "Matrices");
-    unsigned int yellowIndex = glGetUniformBlockIndex(yellow.m_Program, "Matrices");
-
-    // Set binding point for the Matrices block in our shaders
-    glUniformBlockBinding(red.m_Program,    redIndex,    0);
-    glUniformBlockBinding(green.m_Program,  greenIndex,  0);
-    glUniformBlockBinding(blue.m_Program,   blueIndex,   0);
-    glUniformBlockBinding(yellow.m_Program, yellowIndex, 0);
-
-    // Create uniform buffer object and set binding to 0
-    unsigned int UBO;
-    glGenBuffers(1, &UBO);
-
-    // Bind buffer, designate size in memory, unbind buffer
-    glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    // Set binding point for entire range of buffer to 0
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBO, 0, 2 * sizeof(glm::mat4));
-
-    // Projection matrix
-    glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
-
-    // Send projection matrix data to uniform buffer at offset = 0
-    glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS); 
     //glEnable(GL_CULL_FACE);
     //glDisable(GL_CULL_FACE);
     glEnable(GL_PROGRAM_POINT_SIZE);
 
-    const float speed = 50.0f;
-    const float subSpeed = 100.0f;
-    const glm::vec3 spin = glm::vec3(0.0f, 1.0f, 0.0f);
-    const glm::vec3 subSpin = glm::vec3(0.0f, 1.0f, 0.0f);
 
 /*#####################################################################################################################################################*/
     // RENDER LOOP
@@ -177,54 +157,15 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // Send view matrix data to uniform buffer at offset = sizeof(projection matrix)
-        glm::mat4 view = camera.getViewMatrix();
-        glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        //glm::mat4 view = camera.getViewMatrix();
+        //glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
 
-        // Red cube
+        shader.Use();
         glBindVertexArray(VAO);
-        red.Use();
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(((float)currentTime * speed)), spin);
-        model = glm::translate(model, glm::vec3(-0.75f, 0.75f, 0.0f)); // Top-left
-        model = glm::rotate(model, glm::radians(((float)currentTime * subSpeed)), subSpin);
-        red.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_POINTS, 0, 4);
+
+
         
-        // Green cube
-        glBindVertexArray(VAO);
-        green.Use();
-        model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(((float)currentTime * speed)), spin);
-        model = glm::translate(model, glm::vec3(0.75f, 0.75f, 0.0f)); // Top-right
-        model = glm::rotate(model, glm::radians(((float)currentTime * subSpeed)), subSpin);
-        green.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        // Blue cube
-        glBindVertexArray(VAO);
-        blue.Use();
-        model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(((float)currentTime * speed)), spin);
-        model = glm::translate(model, glm::vec3(0.75f, -0.75f, 0.0f)); // Bottom-right
-        model = glm::rotate(model, glm::radians(((float)currentTime * subSpeed)), subSpin);
-        blue.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        // Yellow cube
-        glBindVertexArray(VAO);
-        yellow.Use();
-        model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(((float)currentTime * speed)), spin);
-        model = glm::translate(model, glm::vec3(-0.75f, -0.75f, 0.0f)); // Bottom-left
-        model = glm::rotate(model, glm::radians(((float)currentTime * subSpeed)), subSpin);
-        yellow.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-
-        //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
 
         // Swap the buffers
         glfwSwapBuffers(window);
