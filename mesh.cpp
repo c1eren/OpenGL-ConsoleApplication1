@@ -32,6 +32,8 @@ void Mesh::Draw(Shader& shader)
 		}
 		// Concatenate type and number together and set a location value to correspond with active texture unit
 		shader.setInt((name + number).c_str(), i);//"material." + 
+		//shader.setInt(("material." + name + number).c_str(), i);
+
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 

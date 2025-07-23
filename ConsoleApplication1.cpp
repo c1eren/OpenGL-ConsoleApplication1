@@ -88,45 +88,50 @@ int main()
     // Hide and capture cursor when application has focus
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+    // Model loading
+    Model backpack("models/backpack/backpack.obj");
 
     // Shader loading
-
     Shader shader("res/shaders/simple.vs", "res/shaders/simple.fs", "res/shaders/simple.gs");
 
-    // Geometry shader
-    const char* shaderText = {
-        "#version 460 core\n"
-        "layout (points) in;\n"
-        "layout (points, max_vertices = 1) out;\n"
-        "void main() {\n"
-        "gl_Position = gl_in[0].gl_Position;\n"
-        "EmitVertex();\n"
-        "EndPrimitive();\n"
-        "}"
-    };
-
     // Vertex data
+    //float points[] = {
+    //-0.5f,  0.5f,  1.0f,  0.0f,  0.0f, // top-left
+    // 0.5f,  0.5f,  0.0f,  1.0f,  0.0f, // top-right
+    // 0.5f, -0.5f,  0.0f,  0.0f,  1.0f, // bottom-right
+    //-0.5f, -0.5f,  1.0f,  1.0f,  0.0f  // bottom-left
+    //};
+    //
+    //
+    //GLuint VAO, VBO;
+    //glGenVertexArrays(1, &VAO);
+    //glGenBuffers(1, &VBO);
+    //
+    //glBindVertexArray(VAO);
+    //glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
+    //
+    //// Vertex positions
+    //glEnableVertexAttribArray(0);
+    //glEnableVertexAttribArray(1);
+    //
+    //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+    //
+    //glBindVertexArray(0);
 
-    float points[] = {
-        -0.5f,  0.5f, // top-left
-         0.5f,  0.5f, // top-right
-         0.5f, -0.5f, // bottom-right
-        -0.5f, -0.5f  // bottom-left
-    };
-
-    GLuint VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
-
-    // Vertex positions
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-
-    glBindVertexArray(0);
+    // Uniform buffer
+    unsigned int UBO;
+    glGenBuffers(1, &UBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBO, 0, 2 * sizeof(glm::mat4));
+    glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
+    glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     // FPS and timekeeping
     double currentTime = glfwGetTime();
@@ -157,13 +162,16 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // Send view matrix data to uniform buffer at offset = sizeof(projection matrix)
-        //glm::mat4 view = camera.getViewMatrix();
-        //glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
+        glm::mat4 view = camera.getViewMatrix();
+        glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-        shader.Use();
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_POINTS, 0, 4);
+        glm::mat4 model = glm::mat4(1.0);
+        shader.setFloat("time", currentTime);
+        shader.setMat4("model", model);
 
+        backpack.Draw(shader);
 
         
 
