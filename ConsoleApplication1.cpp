@@ -88,56 +88,39 @@ int main()
     // Hide and capture cursor when application has focus
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    std::vector<std::string> texPaths = {
-        "textures/container2_diffuse.png"
-    };
-
     // Model loading
-    Model backpack("models/backpack/backpack.obj");
-    Cube cube(cubeNormalsNoInd, texPaths);
 
     // Shader loading
     Shader shader("res/shaders/simple.vs", "res/shaders/simple.fs");
-    Shader viewNorm("res/shaders/viewNormals.vs", "res/shaders/viewNormals.fs", "res/shaders/viewNormals.gs");
 
     // Vertex data
-    //float points[] = {
-    //-0.5f,  0.5f,  1.0f,  0.0f,  0.0f, // top-left
-    // 0.5f,  0.5f,  0.0f,  1.0f,  0.0f, // top-right
-    // 0.5f, -0.5f,  0.0f,  0.0f,  1.0f, // bottom-right
-    //-0.5f, -0.5f,  1.0f,  1.0f,  0.0f  // bottom-left
-    //};
-    //
-    //
-    //GLuint VAO, VBO;
-    //glGenVertexArrays(1, &VAO);
-    //glGenBuffers(1, &VBO);
-    //
-    //glBindVertexArray(VAO);
-    //glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
-    //
-    //// Vertex positions
-    //glEnableVertexAttribArray(0);
-    //glEnableVertexAttribArray(1);
-    //
-    //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-    //
-    //glBindVertexArray(0);
+    float quadVertices[] = {
+        // positions // colors
+        -0.05f,  0.05f,  1.0f,  0.0f,  0.0f,
+         0.05f, -0.05f,  0.0f,  1.0f,  0.0f,
+        -0.05f, -0.05f,  0.0f,  0.0f,  1.0f,
+        -0.05f,  0.05f,  1.0f,  0.0f,  0.0f,
+         0.05f, -0.05f,  0.0f,  1.0f,  0.0f,
+         0.05f,  0.05f,  0.0f,  1.0f,  1.0f
+    };
 
-    // Uniform buffer
-    unsigned int UBO;
-    glGenBuffers(1, &UBO);
-    glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4) + sizeof(glm::mat3x4), NULL, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    GLuint VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
     
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, UBO, 0, 2 * sizeof(glm::mat4) + sizeof(glm::mat3x4));
-    glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
-    glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    
+    // Vertex positions
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+    
+    glBindVertexArray(0);
+
 
     // FPS and timekeeping
     double currentTime = glfwGetTime();
@@ -150,13 +133,35 @@ int main()
     camera.camZoom = 60.0f;
 
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS); 
+    //glEnable(GL_DEPTH_TEST);
+    //glDepthFunc(GL_LESS); 
     //glEnable(GL_CULL_FACE);
     //glDisable(GL_CULL_FACE);
-    glEnable(GL_PROGRAM_POINT_SIZE);
+    //glEnable(GL_PROGRAM_POINT_SIZE);
+    
 
     const float speed = 10.0f;
+
+    glm::vec2 translations[100];
+    int index = 0;
+    float offset = 0.1f;
+    for (int y = -10; y < 10; y += 2)
+    {
+        for (int x = -10; x < 10; x += 2)
+        {
+            // Getting offset between -1.0 and 1.0  
+            glm::vec2 translation;
+            translation.x = (float)x / 10.0f + offset;
+            translation.y = (float)y / 10.0f + offset;
+            translations[index++] = translation;
+        }
+    }
+    shader.Use();
+    for (unsigned int i = 0; i < 100; i++)
+    {
+        shader.setVec2(("offsets[" + std::to_string(i) + "]").c_str(), translations[i]);
+    }
+
 
 
 /*#####################################################################################################################################################*/
@@ -167,40 +172,12 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 
-        // Send view matrix data to uniform buffer at offset = sizeof(projection matrix)
-        glm::mat4 view = camera.getViewMatrix();
-        glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-        glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        shader.Use();
+        glBindVertexArray(VAO);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
 
-        glm::mat4 model = glm::mat4(1.0);
-        model = glm::rotate(model, glm::radians((float)(currentTime * speed)), glm::vec3(1.0f, 1.0f, 0.0f));
-        shader.setMat4("model", model);
-        backpack.Draw(shader);
-
-        // Send normal matrix to uniform block inside vs
-        viewNorm.setMat4("model", model);
-        glm::mat3x4 paddedNormal = glm::mat3x4(glm::transpose(glm::inverse(view * model))); // This is important, adhere to UBO alignment please
-        glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-        glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat3x4), glm::value_ptr(paddedNormal));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        backpack.Draw(viewNorm);
-
-        model = glm::mat4(1.0);
-        model = glm::translate(model, glm::vec3(3.0f, 0.0f, 3.0f));
-        model = glm::rotate(model, glm::radians((float)(currentTime * speed)), glm::vec3(1.0f, 1.0f, 0.0f));
-        shader.setMat4("model", model);
-        cube.Draw(shader);
-
-        // Send normal matrix to uniform block inside vs
-        viewNorm.setMat4("model", model);
-        paddedNormal = glm::mat3x4(glm::transpose(glm::inverse(view * model))); // This is important, adhere to UBO alignment please
-        glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-        glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat3x4), glm::value_ptr(paddedNormal));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        cube.Draw(viewNorm);
     
 
         // Swap the buffers
