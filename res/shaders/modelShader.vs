@@ -20,6 +20,6 @@ void main()
     FragPos = vec3(worldPos);
     Normal = normalMatrix * aNormal;
 
-   // gl_Position = projection * view * model * vec4(aPos, 1.0);
-    gl_Position = projection * view * worldPos;
+   //gl_Position = projection * view * model * vec4(aPos, 1.0);
+   gl_Position = projection * view * worldPos;
 }

@@ -1,15 +1,17 @@
 #version 460 core
 
-layout (location = 0) in vec2 aPos;
-layout (location = 1) in vec3 aCol;
-layout (location = 2) in vec2 aOffset;
+layout (location = 0) in vec3 aPos;
+//layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexture;
 
-out vec2 FragPos;
-out vec3 fCol;
+out vec2 TexCoords;
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
 
 void main()
 {
-
-	gl_Position = vec4(aPos + aOffset, 0.0, 1.0);
-	fCol = aCol;
+	TexCoords = aTexture;
+	gl_Position = projection * view * model * vec4(aPos, 1.0);
 }

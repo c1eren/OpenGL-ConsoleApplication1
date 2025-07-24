@@ -20,7 +20,7 @@ uniform Material material;
 
 //uniform sampler2D texture_diffuse1;
 //uniform sampler2D texture_specular1;
-uniform float shininess;
+//uniform float shininess;
 
 struct pointLightProperties {
     vec3 ambient;
@@ -34,11 +34,11 @@ struct pointLightProperties {
 };
 uniform pointLightProperties plProperties;
 
-struct PointLight {
-    vec3 position;
-};
-#define NR_POINT_LIGHTS 3
-uniform PointLight pointLights[NR_POINT_LIGHTS]; // An array of pointLight structs
+//struct PointLight {
+//    vec3 position;
+//};
+//#define NR_POINT_LIGHTS 1
+//uniform PointLight pointLights[NR_POINT_LIGHTS]; // An array of pointLight structs
 
 // FUNCTIONS
 vec3 calcPointLights(vec3 materialDiff, vec3 materialSpec, vec3 materialNorm, float shininess, vec3 lightPos, vec3 fragPos, pointLightProperties pl, vec3 viewDir);
@@ -55,10 +55,12 @@ void main()
     vec3 matSpec = vec3(texture(material.texture_specular1, TexCoords));
 
     // Calculate point lights
-	for (int i = 0; i < NR_POINT_LIGHTS; i++)
-	{
-		result += calcPointLights(matDiff, matSpec, norm, shininess, pointLights[i].position, FragPos, plProperties, viewDir);
-	}
+	//for (int i = 0; i < NR_POINT_LIGHTS; i++)
+	//{
+	//	result += calcPointLights(matDiff, matSpec, norm, material.shininess, pointLights[i].position, FragPos, plProperties, viewDir);
+	//}
+
+	
 
 	// Output
     FragColor = vec4(result, 1.0);

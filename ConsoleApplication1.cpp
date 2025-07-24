@@ -89,43 +89,36 @@ int main()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // Model loading
+    Model planet("models/planet/planet.obj");
+    Model rock("models/rock/rock.obj");
 
     // Shader loading
     Shader shader("res/shaders/simple.vs", "res/shaders/simple.fs");
 
     // Vertex data
-    float quadVertices[] = {
-        // positions // colors
-        -0.05f,  0.05f,  1.0f,  0.0f,  0.0f,
-         0.05f, -0.05f,  0.0f,  1.0f,  0.0f,
-        -0.05f, -0.05f,  0.0f,  0.0f,  1.0f,
-        -0.05f,  0.05f,  1.0f,  0.0f,  0.0f,
-         0.05f, -0.05f,  0.0f,  1.0f,  0.0f,
-         0.05f,  0.05f,  0.0f,  1.0f,  1.0f
-    };
 
-    GLuint VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    
-    // Vertex positions
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-    
-    glBindVertexArray(0);
+    //GLuint VAO, VBO;
+    //glGenVertexArrays(1, &VAO);
+    //glGenBuffers(1, &VBO);
+    //
+    //glBindVertexArray(VAO);
+    //glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    //
+    //// Vertex positions
+    //glEnableVertexAttribArray(0);
+    //glEnableVertexAttribArray(1);
+    //
+    //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+    //
+    //glBindVertexArray(0);
 
 
     // FPS and timekeeping
     double currentTime = glfwGetTime();
     float currentFrame = currentTime;     // get current time 
-    const float radius = 2.0f;
+    //const float radius = 2.0f;
     const float rotateSpeed = 10.0f;
 
     // Camera style
@@ -133,29 +126,29 @@ int main()
     camera.camZoom = 60.0f;
 
 
-    //glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LESS); 
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     //glDisable(GL_CULL_FACE);
     //glEnable(GL_PROGRAM_POINT_SIZE);
     
 
     const float speed = 10.0f;
 
-    glm::vec2 translations[100];
-    int index = 0;
-    float offset = 0.1f;
-    for (int y = -10; y < 10; y += 2)
-    {
-        for (int x = -10; x < 10; x += 2)
-        {
-            // Getting offset between -1.0 and 1.0  
-            glm::vec2 translation;
-            translation.x = (float)x / 10.0f + offset;
-            translation.y = (float)y / 10.0f + offset;
-            translations[index++] = translation;
-        }
-    }
+    //glm::vec2 translations[100];
+    //int index = 0;
+    //float offset = 0.1f;
+    //for (int y = -10; y < 10; y += 2)
+    //{
+    //    for (int x = -10; x < 10; x += 2)
+    //    {
+    //        // Getting offset between -1.0 and 1.0  
+    //        glm::vec2 translation;
+    //        translation.x = (float)x / 10.0f + offset;
+    //        translation.y = (float)y / 10.0f + offset;
+    //        translations[index++] = translation;
+    //    }
+    //}
     //shader.Use();
     //for (unsigned int i = 0; i < 100; i++)
     //{
@@ -163,21 +156,50 @@ int main()
     //}
 
     // Instance array buffer
-    unsigned int instanceVBO;
-    glGenBuffers(1, &instanceVBO);
-    
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    //unsigned int instanceVBO;
+    //glGenBuffers(1, &instanceVBO);
+    //
+    //glBindVertexArray(VAO);
+    //glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    //
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations[0], GL_STATIC_DRAW);
+    //
+    //glEnableVertexAttribArray(2);
+    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    //glVertexAttribDivisor(2, 1); // Every 1 instance in the draw call update vertexAttribPointer number 2
+    //
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindVertexArray(0);
+    unsigned int amount = 1000;
+    glm::mat4* modelMatrices;
+    modelMatrices = new glm::mat4[amount];
+    srand(static_cast<unsigned int>(glfwGetTime())); // initialize random seed
+    float radius = 50.0;
+    float offset = 2.5f;
+    for (unsigned int i = 0; i < amount; i++)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+        float angle = (float)i / (float)amount * 360.0f;
+        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float x = sin(angle) * radius + displacement;
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float y = displacement * 0.4f; // keep height of asteroid field smaller compared to width of x and z
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float z = cos(angle) * radius + displacement;
+        model = glm::translate(model, glm::vec3(x, y, z));
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations[0], GL_STATIC_DRAW);
+        // 2. scale: Scale between 0.05 and 0.25f
+        float scale = static_cast<float>((rand() % 20) / 100.0 + 0.05);
+        model = glm::scale(model, glm::vec3(scale));
 
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glVertexAttribDivisor(2, 1); // Every 1 instance in the draw call update vertexAttribPointer number 2
+        // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+        float rotAngle = static_cast<float>((rand() % 360));
+        model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
+        // 4. now add to list of matrices
+        modelMatrices[i] = model;
+    }
 
 
 /*#####################################################################################################################################################*/
@@ -188,11 +210,26 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.camZoom), (float)viewport_width / (float)viewport_height, 0.1f, 100.0f);
+        glm::mat4 view = camera.getViewMatrix();
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(view * model));
 
         shader.Use();
-        glBindVertexArray(VAO);
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+        shader.setMat4("model", model);
+        //shader.setMat3("normalMatrix", normalMatrix);
+        //shader.setVec3("viewPos", camera.cameraPos);
+
+        planet.Draw(shader);
+
+        for (unsigned int i = 0; i < amount; i++)
+        {
+            shader.setMat4("model", modelMatrices[i]);
+            rock.Draw(shader);
+        }
 
     
 
