@@ -13,12 +13,12 @@ public:
 	Model(std::string path);
 
 	void Draw(Shader& shader);
+	std::vector<Mesh> meshes;
 
 private:
 	// Model data
 	
 	// Each model has an array of meshes
-	std::vector<Mesh> meshes;
 
 	// Filepath
 	std::string directory;

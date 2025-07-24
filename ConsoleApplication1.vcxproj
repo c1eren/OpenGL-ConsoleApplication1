@@ -211,6 +211,7 @@
     <None Include="res\shaders\simple.fs" />
     <None Include="res\shaders\simple.gs" />
     <None Include="res\shaders\simple.vs" />
+    <None Include="res\shaders\simpleInstanced.vs" />
     <None Include="res\shaders\viewNormals.fs" />
     <None Include="res\shaders\viewNormals.gs" />
     <None Include="res\shaders\viewNormals.vs" />

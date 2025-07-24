@@ -93,6 +93,7 @@
     <None Include="res\shaders\viewNormals.gs" />
     <None Include="res\shaders\viewNormals.vs" />
     <None Include="res\shaders\viewNormals.fs" />
+    <None Include="res\shaders\simpleInstanced.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">

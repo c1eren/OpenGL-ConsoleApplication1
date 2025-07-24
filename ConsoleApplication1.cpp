@@ -94,6 +94,8 @@ int main()
 
     // Shader loading
     Shader shader("res/shaders/simple.vs", "res/shaders/simple.fs");
+    Shader shaderInstanced("res/shaders/simpleInstanced.vs", "res/shaders/simple.fs");
+
 
     // Vertex data
 
@@ -155,21 +157,6 @@ int main()
     //    shader.setVec2(("offsets[" + std::to_string(i) + "]").c_str(), translations[i]);
     //}
 
-    // Instance array buffer
-    //unsigned int instanceVBO;
-    //glGenBuffers(1, &instanceVBO);
-    //
-    //glBindVertexArray(VAO);
-    //glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    //
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations[0], GL_STATIC_DRAW);
-    //
-    //glEnableVertexAttribArray(2);
-    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    //glVertexAttribDivisor(2, 1); // Every 1 instance in the draw call update vertexAttribPointer number 2
-    //
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindVertexArray(0);
     unsigned int amount = 1000;
     glm::mat4* modelMatrices;
     modelMatrices = new glm::mat4[amount];
@@ -201,6 +188,37 @@ int main()
         modelMatrices[i] = model;
     }
 
+    //Instance array buffer
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+
+    for (unsigned int i = 0; i < rock.meshes.size(); i++)
+    {
+        glBindVertexArray(rock.meshes[i].VAO);
+        // Vertex attributes
+        std::size_t v4s = sizeof(glm::vec4);
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * v4s, (void*)0);
+
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * v4s, (void*)(1 * v4s));
+
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * v4s, (void*)(2 * v4s));
+
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * v4s, (void*)(3 * v4s));
+
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
+
+        glBindVertexArray(0);
+    }
+
 
 /*#####################################################################################################################################################*/
     // RENDER LOOP
@@ -219,19 +237,21 @@ int main()
         shader.Use();
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
-        shader.setMat4("model", model);
-        //shader.setMat3("normalMatrix", normalMatrix);
-        //shader.setVec3("viewPos", camera.cameraPos);
 
+        model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
+        model = glm::rotate(model, glm::radians((float)currentTime * speed), glm::vec3(0.0f, 1.0f, 0.0f));
+        shader.setMat4("model", model);
         planet.Draw(shader);
 
-        for (unsigned int i = 0; i < amount; i++)
+        shaderInstanced.Use();
+        shaderInstanced.setMat4("projection", projection);
+        shaderInstanced.setMat4("view", view);
+        for (unsigned int i = 0; i < rock.meshes.size(); i++)
         {
-            shader.setMat4("model", modelMatrices[i]);
-            rock.Draw(shader);
+            glBindVertexArray(rock.meshes[i].VAO);
+            glDrawElementsInstanced(GL_TRIANGLES, rock.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, amount);
         }
-
-    
 
         // Swap the buffers
         glfwSwapBuffers(window);
